@@ -1,65 +1,172 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Image from "next/image";
+import { useState } from "react";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log({ email, password });
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen flex flex-col bg-white">
+      {/* HEADER  */}
+      <header className=" bg-blue-900 shadow-lg">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center">
+              {/* Logo placeholder */}
+              <Image
+                src="/logo-sulteng.png"
+                alt="Logo Sulteng"
+                width={50}
+                height={50}
+                className="object-contain"
+              />
+            </div>
+            <div className="text-white">
+              <div className="text-sm font-semibold">PEMERINTAH PROVINSI</div>
+              <div className="text-lg font-bold">SULAWESI TENGAH</div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* HERO */}
+      <main className="relative w-full flex-1 overflow-hidden">
+        {/* Background Gelombang */}
+
+        <div className="relative z-10 pt-16">
+          {/* Title */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl md:text-6xl font-extrabold text-blue-900">
+              SIMONEVA BERANI
+            </h1>
+            <p className="text-blue-800 mt-3 text-lg">
+              Sistem Informasi, Monitoring dan Evaluasi 9 Program Kerja
+            </p>
+            <p className="text-blue-700 mt-1">
+              <strong>BAPPEDA</strong> – Badan Perencanaan Pembangunan Daerah
+              Provinsi Sulawesi Tengah
+            </p>
+          </div>
+
+          {/* HERO OFFICIALS BACKGROUND */}
+          <div className="relative w-screen min-h-[110vh] overflow-hidden">
+
+            <div className="absolute inset-0 z-0">
+              <Image
+                src="/bg.png"
+                alt="Background"
+                fill
+                priority
+                className="object-cover"
+              />
+            </div>
+
+            <div className="absolute inset-0 z-10">
+              <Image
+                src="/indo.png"
+                alt="Indonesia Overlay"
+                fill
+                priority
+                className="object-cover"
+              />
+            </div>
+
+            <div className="absolute inset-0 z-20 flex justify-center items-end gap-16 pointer-events-none">
+              <Image
+                src="/gubernur.png"
+                alt="Gubernur"
+                width={550}
+                height={550}
+                className="object-contain"
+              />
+              <Image
+                src="/wakil-gubernur.png"
+                alt="Wakil Gubernur"
+                width={550}
+                height={550}
+                className="object-contain"
+              />
+            </div>
+
+            {/* 4️⃣ LOGIN CARD (TOP LAYER) */}
+            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 w-full max-w-md px-4">
+              <div className="backdrop-blur-xs bg-white/20 border border-white/30 rounded-2xl shadow-2xl p-8">
+                <h2 className="text-3xl font-bold text-blue-900 text-center mb-8">
+                  Welcome Back
+                </h2>
+
+                <form onSubmit={handleLogin} className="space-y-5">
+                  {/* Gmail */}
+                  <div className="relative mb-6">
+                    <span
+                      className="absolute left-2 top-1/2 -translate-y-1/2
+                           bg-blue-700 text-white text-sm font-semibold
+                           px-4 py-2 rounded-full shadow"
+                    >
+                      Gmail
+                    </span>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="12345hg@gmail.com"
+                      className="w-full pl-28 pr-6 py-4 rounded-full
+                       bg-white/80 border border-gray-500
+                       text-black placeholder:to-black
+                       focus:ring-2 focus:ring-blue-600 outline-none"
+                      required
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div className="relative mb-8">
+                    <span
+                      className="absolute left-2 top-1/2 -translate-y-1/2
+                           bg-yellow-400 text-blue-900 text-sm font-bold
+                           px-4 py-2 rounded-full shadow"
+                    >
+                      Password
+                    </span>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="********"
+                      className="w-full pl-32 pr-6 py-4 rounded-full
+                       bg-white/80 border border-gray-500
+                       text-black placeholder:to-black
+                       focus:ring-2 focus:ring-blue-600 outline-none"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="mx-auto block px-14 py-3
+                     bg-blue-700 hover:bg-blue-800
+                     text-white text-lg font-semibold
+                     rounded-full shadow-lg transition"
+                  >
+                    Login
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
+
+      {/*  FOOTER  */}
+      <footer className="bg-blue-900 text-center text-sm text-white py-4">
+        © 2026 Pemerintah Provinsi Sulawesi Tengah. All rights reserved.
+      </footer>
     </div>
   );
 }
