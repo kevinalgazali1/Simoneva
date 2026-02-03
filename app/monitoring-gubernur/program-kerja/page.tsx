@@ -1,9 +1,9 @@
 import Image from "next/image";
 
-export default function MonitoringPage() {
+export default function ProgramKerjaPage() {
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
         {/* HEADER */}
         <header className="bg-blue-900 shadow-lg">
           <div className="container mx-auto px-6 py-4 flex justify-between items-center">
