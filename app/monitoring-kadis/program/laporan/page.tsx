@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 
 export default function LaporanPage() {
   const [search, setSearch] = useState("");
+  const router = useRouter();
   const data = [
     {
       nama: "Ahmad Fauzan",
@@ -37,6 +39,14 @@ export default function LaporanPage() {
 
       {/* Content */}
       <main className="flex-1 p-8 bg-gray-100 min-h-screen">
+        <button
+          onClick={() => router.back()}
+          className="mb-4 px-4 py-2 rounded-lg 
+        bg-blue-600 text-white font-semibold
+        hover:bg-blue-700 transition"
+        >
+          ← Kembali
+        </button>
         <h1 className="text-xl font-semibold mb-6 text-blue-700">
           Data Laporan
         </h1>

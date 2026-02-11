@@ -5,7 +5,12 @@ import { Home, LogOut, Inbox } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 
-export default function Sidebar() {
+interface SidebarProps {
+  sidebarOpen: boolean;
+  setSidebarOpen: (v: boolean) => void;
+}
+
+export default function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
   const router = useRouter();
   const { user, loading } = useAuth();
 
@@ -32,7 +37,9 @@ export default function Sidebar() {
   };
 
   const isKepalaDinas = role === "Kepala Dinas";
-  const dashboardRoute = isKepalaDinas ? "/monitoring-kadis" : "/monitoring-staff";
+  const dashboardRoute = isKepalaDinas
+    ? "/monitoring-kadis"
+    : "/monitoring-staff";
 
   if (loading) {
     return (
@@ -49,49 +56,63 @@ export default function Sidebar() {
   }
 
   return (
-    <aside
-      className="w-72 min-h-screen text-white p-6 flex flex-col justify-between"
-      style={{ backgroundImage: "url('/sidebar.png')" }}
-    >
-      <div>
-        <h1 className="text-2xl font-bold mb-10">SIMONEVA</h1>
+    <>
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <aside
+        className={`
+        fixed flex flex-col justify-between lg:static top-0 left-0 z-50
+        w-72 min-h-screen text-white p-6
+        transform transition-transform duration-300
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0
+      `}
+        style={{ backgroundImage: "url('/sidebar.png')" }}
+      >
+        <div>
+          <h1 className="text-2xl font-bold mb-10">SIMONEVA</h1>
 
-        <nav className="space-y-2">
-          <Link
-            href={dashboardRoute}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#245CCE] transition"
-          >
-            <Home size={20} />
-            Dashboard Utama
-          </Link>
-
-          {/* ✅ Kotak Masuk - Hanya untuk Kepala Dinas */}
-          {isKepalaDinas && (
+          <nav className="space-y-2">
             <Link
-              href="/monitoring-kadis/kotak-masuk"
+              href={dashboardRoute}
               className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#245CCE] transition"
             >
-              <Inbox size={20} />
-              Kotak Masuk
+              <Home size={20} />
+              Dashboard Utama
             </Link>
-          )}
-        </nav>
-      </div>
 
-      <div className="bg-[#245CCE] p-4 rounded-xl text-sm mt-auto mb-4">
-        <p className="font-semibold">
-          {isKepalaDinas ? "Kepala Dinas" : "Staff Pelaksana OPD"}
-        </p>
-        <p className="text-xs opacity-80">{role}</p>
-      </div>
+            {/* ✅ Kotak Masuk - Hanya untuk Kepala Dinas */}
+            {isKepalaDinas && (
+              <Link
+                href="/monitoring-kadis/kotak-masuk"
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#245CCE] transition"
+              >
+                <Inbox size={20} />
+                Kotak Masuk
+              </Link>
+            )}
+          </nav>
+        </div>
 
-      <button
-        onClick={handleLogout}
-        className="flex items-center gap-3 p-3 rounded-xl bg-red-700 hover:bg-red-500 transition-all duration-100 border-2 border-red-700 w-full text-left"
-      >
-        <LogOut size={20} />
-        Logout
-      </button>
-    </aside>
+        <div className="bg-[#245CCE] p-4 rounded-xl text-sm mt-auto mb-4">
+          <p className="font-semibold">
+            {isKepalaDinas ? "Kepala Dinas" : "Staff Pelaksana OPD"}
+          </p>
+          <p className="text-xs opacity-80">{role}</p>
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 p-3 rounded-xl bg-red-700 hover:bg-red-500 transition-all duration-100 border-2 border-red-700 w-full text-left"
+        >
+          <LogOut size={20} />
+          Logout
+        </button>
+      </aside>
+    </>
   );
 }

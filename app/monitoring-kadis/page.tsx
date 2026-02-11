@@ -73,35 +73,33 @@ export default function BerandaKadis() {
         {/* Card List */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5].map((item) => (
-            <div
-              key={item}
-              className="bg-white border border-[#245CCE] rounded-2xl p-5 
-                shadow-[6px_6px_10px_rgba(0,0,0,0.25)]
-                hover:shadow-[8px_8px_14px_rgba(0,0,0,0.3)]
-                transition-all duration-300"
-            >
-              <div className="flex justify-between items-start">
-                {/* Kiri */}
-                <div className="flex gap-4 text-[#245CCE]">
-                  <FileSpreadsheet size={26} />
+            <Link key={item} href="/monitoring-kadis/program" className="block">
+              <div
+                className="bg-white border border-[#245CCE] rounded-2xl p-5
+        shadow-[6px_6px_10px_rgba(0,0,0,0.25)]
+        hover:shadow-[8px_8px_14px_rgba(0,0,0,0.3)]
+        transition-all duration-300 hover:scale-[1.02]"
+              >
+                <div className="flex justify-between items-start">
+                  {/* Kiri */}
+                  <div className="flex gap-4 text-[#245CCE]">
+                    <FileSpreadsheet size={26} />
 
-                  <div>
-                    <h3 className="font-bold text-lg">Program Kerja {item}</h3>
+                    <div>
+                      <h3 className="font-bold text-lg">
+                        Program Kerja {item}
+                      </h3>
+                    </div>
                   </div>
+
+                  {/* Icon Arrow */}
+                  <ArrowUpRight size={18} className="text-[#245CCE]" />
                 </div>
 
-                {/* Icon Arrow */}
-                <Link
-                  href="/monitoring-staff/laporan"
-                  className="text-[#245CCE] hover:scale-110 transition"
-                >
-                  <ArrowUpRight size={18} />
-                </Link>
+                {/* Footer */}
+                <p className="text-xs text-gray-400 mt-4">Akses Monitoring</p>
               </div>
-
-              {/* Footer Card */}
-              <p className="text-xs text-gray-400 mt-4">Akses Monitoring</p>
-            </div>
+            </Link>
           ))}
         </div>
       </main>
