@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Link from "next/link";
 import {
   Settings,
-  ArrowUpRight,
   FileSpreadsheet,
   Eye,
   EyeOff,
@@ -13,13 +12,38 @@ import {
   Mail,
   Phone,
   Lock,
+  Menu,
 } from "lucide-react";
+
+interface SubProgramKerja {
+  id: number;
+  namaSubProgram: string;
+  slug: string;
+  target: number;
+  anggaran: string;
+}
+
+interface JobdeskResponse {
+  status: string;
+  data: {
+    programKerja: {
+      id: number;
+      namaProgram: string;
+      slug: string;
+      deskripsiProgram: string;
+    };
+    subProgramKerja: SubProgramKerja;
+  };
+}
 
 export default function BerandaKadis() {
   const [openModal, setOpenModal] = useState(false);
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [subPrograms, setSubPrograms] = useState<SubProgramKerja[]>([]);
+  const [loading, setLoading] = useState(true);
   const [formSettings, setFormSettings] = useState({
     username: "",
     email: "",
@@ -46,62 +70,110 @@ export default function BerandaKadis() {
     setOpenModal(false);
   };
 
+  const getCookie = (name: string) => {
+    const match = document.cookie.match(
+      new RegExp("(^| )" + name + "=([^;]+)"),
+    );
+    return match ? match[2] : null;
+  };
+
+  useEffect(() => {
+    const fetchJobdesk = async () => {
+      try {
+        const token = getCookie("accessToken");
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/kadis/jobdesk`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const json: JobdeskResponse = await res.json();
+
+        if (json.status === "success") {
+          setSubPrograms([json.data.subProgramKerja]);
+        }
+      } catch (err) {
+        console.error("Error fetch jobdesk:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobdesk();
+  }, []);
+
   return (
     <div className="flex">
       {/* Sidebar */}
-      <Sidebar />
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content */}
       <main className="flex-1 bg-gray-100 min-h-screen p-8">
-        {/* Header */}
-        <div className="items-center al mb-8">
-          {/* Settings Link */}
-          <button
-            onClick={() => setOpenModal(true)}
-            className="flex items-center gap-2 bg-[#245CCE] text-white 
-             px-4 py-2 rounded-xl 
-             hover:bg-white hover:text-[#245CCE] 
-             border-2 border-[#245CCE]
-             transition-all duration-200
-             shadow-sm hover:shadow-md"
-          >
-            <Settings size={18} />
-            Setting
-          </button>
-        </div>
-
-        {/* Card List */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5].map((item) => (
-            <Link key={item} href="/monitoring-kadis/program" className="block">
-              <div
-                className="bg-white border border-[#245CCE] rounded-2xl p-5
-        shadow-[6px_6px_10px_rgba(0,0,0,0.25)]
-        hover:shadow-[8px_8px_14px_rgba(0,0,0,0.3)]
-        transition-all duration-300 hover:scale-[1.02]"
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="text-[#245CCE] sm:hidden mb-4"
+        >
+          <Menu size={26} />
+        </button>
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex items-center gap-2 text-[#245CCE]">
+              <div className="h-5 w-5 border-2 border-[#245CCE] border-t-transparent rounded-full animate-spin"></div>
+              <span className="font-semibold">Memuat data subprogram...</span>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="items-center mb-8">
+              <button
+                onClick={() => setOpenModal(true)}
+                className="flex items-center gap-2 bg-[#245CCE] text-white px-4 py-2 rounded-xl
+          hover:bg-white hover:text-[#245CCE]
+          border-2 border-[#245CCE]
+          transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                <div className="flex justify-between items-start">
-                  {/* Kiri */}
-                  <div className="flex gap-4 text-[#245CCE]">
-                    <FileSpreadsheet size={26} />
+                <Settings size={18} />
+                Setting
+              </button>
+            </div>
 
-                    <div>
+            {/* Card List */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {subPrograms.length === 0 ? (
+                <p className="text-gray-500 text-sm">
+                  Data subprogram belum tersedia.
+                </p>
+              ) : (
+                subPrograms.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white border border-[#245CCE] rounded-2xl p-5 shadow-[6px_6px_10px_rgba(0,0,0,0.25)] hover:shadow-[8px_8px_14px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-[1.02]"
+                  >
+                    <div className="flex gap-4 text-[#245CCE] mb-3 items-center">
+                      <FileSpreadsheet size={26} />
                       <h3 className="font-bold text-lg">
-                        Program Kerja {item}
+                        {item.namaSubProgram}
                       </h3>
                     </div>
+
+                    <p className="text-[#245CCE]">
+                      <strong>Target:</strong> {item.target}
+                    </p>
+                    <p className="text-[#245CCE]">
+                      <strong>Anggaran:</strong> Rp{" "}
+                      {Number(item.anggaran).toLocaleString("id-ID")}
+                    </p>
                   </div>
-
-                  {/* Icon Arrow */}
-                  <ArrowUpRight size={18} className="text-[#245CCE]" />
-                </div>
-
-                {/* Footer */}
-                <p className="text-xs text-gray-400 mt-4">Akses Monitoring</p>
-              </div>
-            </Link>
-          ))}
-        </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </main>
 
       {/* Modal Settings */}
