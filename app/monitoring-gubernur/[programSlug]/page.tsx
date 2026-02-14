@@ -15,36 +15,37 @@ interface SubProgram {
 
 interface APIResponse {
   status: string;
-  id: number;
-  program: string;
-  slug: string;
   data: SubProgram[];
 }
 
 export default function ProgramKerjaPage() {
   const params = useParams();
-  const slug = params.slug as string;
-  const [programData, setProgramData] = useState<APIResponse | null>(null);
+  const slug = params.programSlug as string;
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const [subPrograms, setSubPrograms] = useState<SubProgram[]>([]);
+  const [programTitle, setProgramTitle] = useState("");
+
+  const formatTitle = (slug: string) => {
+    return slug
+      .split("-")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+  };
+
+  console.log("Slug params:", slug);
   useEffect(() => {
-    if (!slug) {
-      setLoading(false);
-      return;
-    }
+    if (!slug) return;
 
-    const fetchSubProgram = async () => {
+    const fetchData = async () => {
       try {
-        setLoading(true);
-
         const token = document.cookie
           .split("; ")
           .find((row) => row.startsWith("accessToken="))
           ?.split("=")[1];
 
-        console.log("Fetching with slug:", slug);
-        console.log("Token:", token ? "exists" : "not found");
+        console.log("Fetching API:", slug);
 
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API}/gubernur/program/${slug}`,
@@ -56,22 +57,21 @@ export default function ProgramKerjaPage() {
           },
         );
 
+        console.log("Status:", res.status);
         const json: APIResponse = await res.json();
-        console.log("Response:", json);
 
         if (json.status === "success") {
-          console.log("Program:", json.program);
-          console.log("SubPrograms count:", json.data.length);
-          setProgramData(json);
+          setSubPrograms(json.data);
+          setProgramTitle(formatTitle(slug));
+          setLoading(false);
         }
       } catch (err) {
-        console.error("Error:", err);
-      } finally {
-        setLoading(false);
+        console.error(err);
       }
     };
 
-    fetchSubProgram();
+    fetchData();
+    console.log("Slug:", slug);
   }, [slug]);
 
   const handleLogout = async () => {
@@ -138,11 +138,11 @@ export default function ProgramKerjaPage() {
       </section>
 
       {/* PROGRAM TITLE */}
-      {programData && (
+      {programTitle && (
         <section className="max-w-6xl mx-auto px-6 pb-6">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
             <h2 className="text-4xl font-bold text-blue-900 uppercase">
-              {programData.program}
+              {programTitle}
             </h2>
           </div>
         </section>
@@ -191,7 +191,6 @@ export default function ProgramKerjaPage() {
               {/* Content */}
               <div className="relative z-20 pt-16">
                 <div className="flex items-center justify-center">
-
                   {/* Buttons Grid */}
                   <div className="w-full">
                     {loading ? (
@@ -200,7 +199,7 @@ export default function ProgramKerjaPage() {
                           Loading data...
                         </p>
                       </div>
-                    ) : !programData || programData.data.length === 0 ? (
+                    ) : !subPrograms || subPrograms.length === 0 ? (
                       <div className="text-center py-8">
                         <p className="text-gray-600 text-lg font-semibold">
                           No sub-programs available
@@ -208,7 +207,7 @@ export default function ProgramKerjaPage() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {programData.data.map((sub) => (
+                        {subPrograms.map((sub) => (
                           <button
                             key={sub.id}
                             className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-full font-bold text-sm shadow-lg transition-all hover:shadow-xl hover:scale-105 text-left"

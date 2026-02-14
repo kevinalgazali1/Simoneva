@@ -175,10 +175,10 @@ export default function KotakMasuk() {
     });
 
   return (
-    <div className="flex">
+    <div className="min-h-screen ">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <main className="flex-1 p-6 bg-gray-50 min-h-screen">
+      <main className="lg:ml-72 bg-gray-100 p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-screen">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="text-[#245CCE] sm:hidden mb-4"
@@ -269,7 +269,6 @@ export default function KotakMasuk() {
             })}
           </div>
         )}
-
       </main>
     </div>
   );

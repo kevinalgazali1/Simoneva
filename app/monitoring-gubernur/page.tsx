@@ -181,7 +181,7 @@ export default function MonitoringGubernur() {
               </p>
 
               <Link
-                href={`/monitoring-gubernur/${programs[activeIndex]?.slug}`}
+                href={`/monitoring-gubernur/${programs[activeIndex].slug}`}
               >
                 <button className="bg-blue-700 hover:bg-blue-800 text-white px-8 py-3 rounded-full font-semibold">
                   Lihat Detail

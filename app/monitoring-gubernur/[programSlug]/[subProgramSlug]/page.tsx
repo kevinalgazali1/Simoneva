@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { UsersIcon } from "@heroicons/react/24/solid";
 
 const NAV_ITEMS = [
   "Profile",
@@ -11,35 +12,8 @@ const NAV_ITEMS = [
   "Evaluasi",
 ];
 
-const PROGRAM_BUTTONS = [
-  "Bosda",
-  "Beasiswa",
-  "Sarana & Prasarana",
-  "Career Center",
-  "Biaya SPP",
-  "Biaya Uji Kompetensi",
-  "Vokasi",
-];
-
-const WILAYAH = [
-  "Palu",
-  "Banggai",
-  "Morowali",
-  "Poso",
-  "Donggala",
-  "Tolitoli",
-  "Buol",
-  "Parigi Moutong",
-  "Tojo Una-Una",
-  "Sigi",
-  "Banggai Kepulauan",
-  "Banggai Laut",
-  "Morowali Utara",
-];
-
-export default function ProgramPage() {
-  const [openWilayah, setOpenWilayah] = useState(false);
-  const [selectedWilayah, setSelectedWilayah] = useState("Pilih Wilayah");
+export default function SubProgramPage() {
+  const [searchName, setSearchName] = useState("");
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
@@ -120,146 +94,115 @@ export default function ProgramPage() {
                 }}
               />
 
-              {/* Sebaran Wilayah */}
-              <div className="absolute right-8 top-6 z-30">
+              {/* ================= SEARCH NAMA ================= */}
+              <div className="absolute right-8 top-6 z-30 w-72">
                 <div className="relative">
-                  {/* Trigger Button */}
-                  <button
-                    onClick={() => setOpenWilayah(!openWilayah)}
+                  {/* Input */}
+                  <input
+                    type="text"
+                    value={searchName}
+                    onChange={(e) => setSearchName(e.target.value)}
+                    placeholder="Cari nama..."
                     className="
-                    flex items-center gap-2
-                    rounded-xl border-2 border-blue-600
-                    bg-white px-6 py-2.5
-                    text-sm font-semibold text-blue-700
-                    shadow-md transition
-                    hover:bg-[linear-gradient(90deg,#153893_0%,#245CCE_35%,#153893_61%,#245CCE_87%)] hover:text-white
-                  "
+        w-full rounded-xl border-2 border-blue-600
+        bg-white px-5 py-2.5
+        text-sm font-semibold text-blue-700
+        shadow-md outline-none
+        placeholder:text-blue-400
+        focus:ring-2 focus:ring-blue-300
+      "
+                  />
+
+                  {/* Icon */}
+                  <svg
+                    className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
                   >
-                    {selectedWilayah}
-                    <svg
-                      className={`h-4 w-4 transition-transform ${
-                        openWilayah ? "rotate-180" : ""
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-
-                  {/* Dropdown */}
-                  {openWilayah && (
-                    <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-blue-200 bg-white shadow-xl">
-                      <ul className="max-h-64 overflow-y-auto text-sm">
-                        {WILAYAH.map((item) => (
-                          <li key={item}>
-                            <button
-                              onClick={() => {
-                                setSelectedWilayah(item);
-                                setOpenWilayah(false);
-                              }}
-                              className="
-                                block w-full px-4 py-2 text-left
-                                text-blue-700 transition
-                                hover:bg-[linear-gradient(90deg,#153893_0%,#245CCE_35%,#153893_61%,#245CCE_87%)] hover:text-white
-                              "
-                            >
-                              {item}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="relative z-20 mt-10 flex justify-end right-8">
-                <div className="flex flex-row justify-center gap-2">
-                  {PROGRAM_BUTTONS.map((item, index) => (
-                    <button
-                      key={index}
-                      className="
-                      group relative
-                      rounded-full
-                      border-2 border-blue-600
-                      bg-white
-                      px-5 py-2
-                      text-sm font-semibold
-                      text-blue-700
-                      transition-all duration-300
-                      hover:bg-[linear-gradient(90deg,#153893_0%,#245CCE_35%,#153893_61%,#245CCE_87%)]
-                      hover:text-white
-                      hover:shadow-lg
-                    "
-                    >
-                      {item}
-                    </button>
-                  ))}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 21l-4.35-4.35"
+                    />
+                    <circle cx="11" cy="11" r="7" />
+                  </svg>
                 </div>
               </div>
 
               {/* Content Section */}
-              <div className="relative z-10 mt-10 border-t-4 border-yellow-400">
-                <div className="grid grid-cols-1 md:grid-cols-2 overflow-hidden">
-                  {/* LEFT PANEL */}
-                  <nav className="bg-blue-900 p-5">
-                    <div className="space-y-1 text-sm text-white rounded-r-xl bg-[linear-gradient(90deg,#153893_0%,#245CCE_35%,#153893_61%,#245CCE_87%)]">
-                      {[
-                        "Mahasiswa Baru Jalur Afirmasi",
-                        "Mahasiswa Baru Jalur Prestasi Akademik",
-                        "Mahasiswa Baru Jalur Prestasi Non-Akademik",
-                        "Mahasiswa Baru Jalur SNBP",
-                        "Mahasiswa Baru Jalur SNBT",
-                        "Mahasiswa Baru Jalur Ordal",
-                      ].map((item, index) => (
-                        <a
-                          key={index}
-                          href="#"
-                          className="
-                          relative block px-5 py-3
-                          transition
-                          overflow-hidden
-                          text-white
-                          hover:text-yellow-300
-                          group
-                        "
-                        >
-                          {item}
-                          <span
-                            className="
-                            absolute left-3 right-3 bottom-0
-                            h-px bg-white
-                            transition
-                            overflow-hidden
-                            group-hover:bg-white/60
-                          "
-                          />
-                        </a>
-                      ))}
-                    </div>
-                  </nav>
-
-                  {/* RIGHT PANEL */}
-                  <div className="relative min-h-70">
-                    {/* Background Image */}
-                    <div
-                      className="absolute inset-0 bg-cover bg-center"
-                      style={{ backgroundImage: "url('/contoh 1.png')" }}
-                    />
-
-                    {/* Blue Overlay */}
-                    <div className="absolute inset-0 bg-blue-900/40" />
-
-                    {/* Gradient Fade from Left */}
-                    <div className="absolute inset-y-0 left-0 w-2/3 bg-linear-to-r from-blue-900 via-blue-900/85 to-transparent" />
+              <div className="relative z-10 mt-10">
+                {/* ===== TOP TOTAL BAR ===== */}
+                <div className="bg-blue-800 text-white px-6 py-5 flex items-center justify-center gap-4">
+                  <div className="bg-white/10 p-3 rounded-lg">
+                    <UsersIcon className="h-7 w-7 text-white" />
                   </div>
+                  <h2 className="text-lg md:text-xl font-semibold tracking-wide">
+                    TOTAL : <span className="font-bold">1000 BEASISWA</span>
+                  </h2>
+                </div>
+
+                {/* ===== TABLE ===== */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-white text-xs text-blue-900 uppercase tracking-wider">
+                      <tr>
+                        <th className="px-6 py-4 text-left">Nama</th>
+                        <th className="px-6 py-4 text-left">No. Registrasi</th>
+                        <th className="px-6 py-4 text-left">Alamat</th>
+                        <th className="px-6 py-4 text-left">Nominal</th>
+                        <th className="px-6 py-4 text-left">Universitas</th>
+                        <th className="px-6 py-4 text-left">Kontak</th>
+                      </tr>
+                    </thead>
+
+                    <tbody className="bg-blue-900 divide-y divide-blue-700 text-white">
+                      {[
+                        {
+                          nama: "Jefri Nichol",
+                          reg: "22098477",
+                          alamat: "Jl. Sawerigading",
+                          nominal: "Rp.2.500.000",
+                          univ: "Hasanuddin",
+                          kontak: "08278809846",
+                        },
+                        {
+                          nama: "Jefri Nichol",
+                          reg: "22098477",
+                          alamat: "Jl. Sawerigading",
+                          nominal: "Rp.2.500.000",
+                          univ: "Hasanuddin",
+                          kontak: "08278809846",
+                        },
+                        {
+                          nama: "Aan Syawaluddin",
+                          reg: "22098477",
+                          alamat: "Jl. Sawerigading",
+                          nominal: "Rp.2.500.000",
+                          univ: "Hasanuddin",
+                          kontak: "08278809846",
+                        },
+                        {
+                          nama: "Nama",
+                          reg: "22098477",
+                          alamat: "Jl. Sawerigading",
+                          nominal: "Rp.2.500.000",
+                          univ: "Hasanuddin",
+                          kontak: "08278809846",
+                        },
+                      ].map((item, i) => (
+                        <tr key={i} className="hover:bg-blue-800/70 transition">
+                          <td className="px-6 py-4 font-medium">{item.nama}</td>
+                          <td className="px-6 py-4">{item.reg}</td>
+                          <td className="px-6 py-4">{item.alamat}</td>
+                          <td className="px-6 py-4">{item.nominal}</td>
+                          <td className="px-6 py-4">{item.univ}</td>
+                          <td className="px-6 py-4">{item.kontak}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
