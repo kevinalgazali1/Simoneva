@@ -21,6 +21,10 @@ interface SubProgramKerja {
   slug: string;
   target: number;
   anggaran: string;
+  persentaseTarget: string;
+  persentaseAnggaran: string;
+  realisasiAnggaran: number;
+  realisasiTarget: number;
 }
 
 interface JobdeskResponse {
@@ -32,7 +36,7 @@ interface JobdeskResponse {
       slug: string;
       deskripsiProgram: string;
     };
-    subProgramKerja: SubProgramKerja;
+    subPrograms: SubProgramKerja[];
   };
 }
 
@@ -94,7 +98,7 @@ export default function BerandaKadis() {
         const json: JobdeskResponse = await res.json();
 
         if (json.status === "success") {
-          setSubPrograms([json.data.subProgramKerja]);
+          setSubPrograms(json.data.subPrograms);
         }
       } catch (err) {
         console.error("Error fetch jobdesk:", err);
@@ -145,31 +149,173 @@ export default function BerandaKadis() {
             {/* Card List */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {subPrograms.length === 0 ? (
-                <p className="text-gray-500 text-sm">
-                  Data subprogram belum tersedia.
-                </p>
+                <div className="col-span-full flex flex-col items-center justify-center py-12">
+                  <FileSpreadsheet size={64} className="text-gray-300 mb-4" />
+                  <p className="text-gray-500 text-base font-medium">
+                    Data subprogram belum tersedia.
+                  </p>
+                </div>
               ) : (
-                subPrograms.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white border border-[#245CCE] rounded-2xl p-5 shadow-[6px_6px_10px_rgba(0,0,0,0.25)] hover:shadow-[8px_8px_14px_rgba(0,0,0,0.3)] transition-all duration-300 hover:scale-[1.02]"
-                  >
-                    <div className="flex gap-4 text-[#245CCE] mb-3 items-center">
-                      <FileSpreadsheet size={26} />
-                      <h3 className="font-bold text-lg">
-                        {item.namaSubProgram}
-                      </h3>
-                    </div>
+                subPrograms.map((item) => {
+                  // Parse persentase dari string "1.00%" menjadi number 1.00
+                  const parsePercentage = (percentStr: string) => {
+                    return parseFloat(percentStr.replace("%", "")) || 0;
+                  };
 
-                    <p className="text-[#245CCE]">
-                      <strong>Target:</strong> {item.target}
-                    </p>
-                    <p className="text-[#245CCE]">
-                      <strong>Anggaran:</strong> Rp{" "}
-                      {Number(item.anggaran).toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                ))
+                  const persentaseTargetNum = parsePercentage(
+                    item.persentaseTarget,
+                  );
+                  const persentaseAnggaranNum = parsePercentage(
+                    item.persentaseAnggaran,
+                  );
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-white border-2 border-[#245CCE] rounded-2xl p-6 
+          shadow-[4px_4px_12px_rgba(36,92,206,0.15)] 
+          hover:shadow-[8px_8px_20px_rgba(36,92,206,0.25)]
+          transition-all duration-300 hover:scale-[1.02]
+          hover:-translate-y-1 group"
+                    >
+                      {/* Header Card */}
+                      <div className="flex gap-3 items-start mb-4 pb-4 border-b border-gray-100">
+                        <div
+                          className="bg-linear-to-br from-[#245CCE] to-[#1a4ba8] p-3 rounded-xl 
+            group-hover:scale-110 transition-transform duration-300"
+                        >
+                          <FileSpreadsheet size={24} className="text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-base text-[#245CCE] leading-tight line-clamp-2">
+                            {item.namaSubProgram}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="space-y-3">
+                        {/* Target */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600 font-medium">
+                            Target
+                          </span>
+                          <span className="text-sm font-bold text-[#245CCE]">
+                            {item.target.toLocaleString("id-ID")}
+                          </span>
+                        </div>
+
+                        {/* Realisasi Target */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600 font-medium">
+                            Realisasi
+                          </span>
+                          <span className="text-sm font-bold text-green-600">
+                            {item.realisasiTarget.toLocaleString("id-ID")}
+                          </span>
+                        </div>
+
+                        {/* Anggaran */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600 font-medium">
+                            Anggaran
+                          </span>
+                          <span className="text-sm font-bold text-[#245CCE]">
+                            Rp {Number(item.anggaran).toLocaleString("id-ID")}
+                          </span>
+                        </div>
+
+                        {/* Realisasi Anggaran */}
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600 font-medium">
+                            Terpakai
+                          </span>
+                          <span className="text-sm font-bold text-orange-600">
+                            Rp{" "}
+                            {Number(item.realisasiAnggaran).toLocaleString(
+                              "id-ID",
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="border-t border-gray-100 my-3"></div>
+
+                        {/* Persentase Target */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-gray-600 font-medium">
+                              Persentase Target
+                            </span>
+                            <span
+                              className={`text-xs font-bold ${
+                                persentaseTargetNum < 30
+                                  ? "text-red-600"
+                                  : persentaseTargetNum < 70
+                                    ? "text-yellow-600"
+                                    : "text-green-600"
+                              }`}
+                            >
+                              {item.persentaseTarget}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+                            <div
+                              className={`h-2.5 rounded-full transition-all duration-700 ease-out shadow-sm ${
+                                persentaseTargetNum < 30
+                                  ? "bg-linear-to-r from-red-400 via-red-500 to-red-600"
+                                  : persentaseTargetNum < 70
+                                    ? "bg-linear-to-r from-yellow-400 via-yellow-500 to-yellow-600"
+                                    : "bg-linear-to-r from-green-400 via-green-500 to-green-600"
+                              }`}
+                              style={{
+                                width: `${Math.min(persentaseTargetNum, 100)}%`,
+                              }}
+                            >
+                              <div className="h-full w-full rounded-full bg-linear-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Persentase Anggaran */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-gray-600 font-medium">
+                              Persentase Anggaran
+                            </span>
+                            <span
+                              className={`text-xs font-bold ${
+                                persentaseAnggaranNum < 30
+                                  ? "text-red-600"
+                                  : persentaseAnggaranNum < 70
+                                    ? "text-yellow-600"
+                                    : "text-green-600"
+                              }`}
+                            >
+                              {item.persentaseAnggaran}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+                            <div
+                              className={`h-2.5 rounded-full transition-all duration-700 ease-out shadow-sm ${
+                                persentaseAnggaranNum < 30
+                                  ? "bg-linear-to-r from-red-400 via-red-500 to-red-600"
+                                  : persentaseAnggaranNum < 70
+                                    ? "bg-linear-to-r from-yellow-400 via-yellow-500 to-yellow-600"
+                                    : "bg-linear-to-r from-green-400 via-green-500 to-green-600"
+                              }`}
+                              style={{
+                                width: `${Math.min(persentaseAnggaranNum, 100)}%`,
+                              }}
+                            >
+                              <div className="h-full w-full rounded-full bg-linear-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </>
