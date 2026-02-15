@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { FileSpreadsheet, Menu } from "lucide-react";
 import Swal from "sweetalert2";
@@ -41,8 +42,7 @@ export default function KotakMasuk() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [laporan, setLaporan] = useState<LaporanInbox[]>([]);
   const [loading, setLoading] = useState(true);
-  const [alasan, setAlasan] = useState("");
-  const [processingId, setProcessingId] = useState<number | null>(null);
+  const router = useRouter();
 
   // ambil token dari cookie
   const getCookie = (name: string) => {
@@ -81,7 +81,9 @@ export default function KotakMasuk() {
     fetchInbox();
   }, []);
 
-  const approveLaporan = async (id: number) => {
+  const approveLaporan = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation(); // Prevent card click
+
     const result = await Swal.fire({
       title: "Konfirmasi Persetujuan",
       text: "Apakah sudah benar laporan ini ingin disetujui?",
@@ -95,8 +97,6 @@ export default function KotakMasuk() {
     if (!result.isConfirmed) return;
 
     try {
-      setProcessingId(id);
-
       const token = getCookie("accessToken");
 
       const res = await fetch(
@@ -123,12 +123,12 @@ export default function KotakMasuk() {
       }
     } catch (err) {
       Swal.fire("Error", "Terjadi kesalahan server", "error");
-    } finally {
-      setProcessingId(null);
     }
   };
 
-  const rejectLaporan = async (id: number) => {
+  const rejectLaporan = async (e: React.MouseEvent, id: number) => {
+    e.stopPropagation(); // Prevent card click
+
     const { value: catatan } = await Swal.fire({
       title: "Alasan Penolakan",
       input: "textarea",
@@ -168,6 +168,10 @@ export default function KotakMasuk() {
     }
   };
 
+  const handleCardClick = (id: number) => {
+    router.push(`/monitoring-kadis/kotak-masuk/${id}`);
+  };
+
   const formatTanggal = (tgl: string) =>
     new Date(tgl).toLocaleString("id-ID", {
       dateStyle: "medium",
@@ -175,7 +179,7 @@ export default function KotakMasuk() {
     });
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       <main className="lg:ml-72 bg-gray-100 p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-screen">
@@ -208,11 +212,12 @@ export default function KotakMasuk() {
               return (
                 <div
                   key={item.id}
-                  className={`rounded-2xl p-5 border transition
+                  onClick={() => handleCardClick(item.id)}
+                  className={`rounded-2xl p-5 border transition cursor-pointer
           ${
             pending
-              ? "bg-white border-[#245CCE] shadow-[6px_6px_10px_rgba(0,0,0,0.25)]"
-              : "bg-gray-200 border-gray-400 shadow-inner"
+              ? "bg-white border-[#245CCE] shadow-[6px_6px_10px_rgba(0,0,0,0.25)] hover:shadow-[8px_8px_15px_rgba(36,92,206,0.3)]"
+              : "bg-gray-200 border-gray-400 shadow-inner hover:shadow-lg"
           }`}
                 >
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -224,6 +229,10 @@ export default function KotakMasuk() {
                         <h3 className="font-bold text-base sm:text-lg leading-tight">
                           {item.namaLaporan}
                         </h3>
+
+                        <p className="text-xs sm:text-sm text-gray-500">
+                          Kontak Pengirim: {item.inputer.kontak}
+                        </p>
 
                         <p className="text-xs sm:text-sm text-gray-500">
                           Masuk: {formatTanggal(item.tanggalInput)}
@@ -239,7 +248,7 @@ export default function KotakMasuk() {
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                       <button
                         disabled={!pending}
-                        onClick={() => approveLaporan(item.id)}
+                        onClick={(e) => approveLaporan(e, item.id)}
                         className={`px-4 py-2 rounded-lg text-white transition w-full sm:w-auto
                         ${
                           pending
@@ -252,7 +261,7 @@ export default function KotakMasuk() {
 
                       <button
                         disabled={!pending}
-                        onClick={() => rejectLaporan(item.id)}
+                        onClick={(e) => rejectLaporan(e, item.id)}
                         className={`px-4 py-2 rounded-lg text-white transition w-full sm:w-auto
                     ${
                       pending

@@ -56,10 +56,10 @@ export default function BerandaKadis() {
     newPassword: "",
     confirmPassword: "",
   });
+
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validasi password baru
     if (
       formSettings.newPassword &&
       formSettings.newPassword !== formSettings.confirmPassword
@@ -69,8 +69,6 @@ export default function BerandaKadis() {
     }
 
     console.log("Data yang akan disimpan:", formSettings);
-    // Tambahkan logic simpan ke backend di sini
-
     setOpenModal(false);
   };
 
@@ -112,10 +110,8 @@ export default function BerandaKadis() {
 
   return (
     <div className="min-h-screen">
-      {/* Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      {/* Main Content */}
       <main className="lg:ml-72 bg-gray-100 p-4 sm:p-6 lg:p-8 overflow-y-auto min-h-screen">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -132,7 +128,6 @@ export default function BerandaKadis() {
           </div>
         ) : (
           <>
-            {/* Header */}
             <div className="items-center mb-8">
               <button
                 onClick={() => setOpenModal(true)}
@@ -146,7 +141,6 @@ export default function BerandaKadis() {
               </button>
             </div>
 
-            {/* Card List */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {subPrograms.length === 0 ? (
                 <div className="col-span-full flex flex-col items-center justify-center py-12">
@@ -157,7 +151,6 @@ export default function BerandaKadis() {
                 </div>
               ) : (
                 subPrograms.map((item) => {
-                  // Parse persentase dari string "1.00%" menjadi number 1.00
                   const parsePercentage = (percentStr: string) => {
                     return parseFloat(percentStr.replace("%", "")) || 0;
                   };
@@ -170,19 +163,19 @@ export default function BerandaKadis() {
                   );
 
                   return (
-                    <div
+                    <Link
                       key={item.id}
+                      href={`/monitoring-kadis/${item.slug}`}
                       className="bg-white border-2 border-[#245CCE] rounded-2xl p-6 
-          shadow-[4px_4px_12px_rgba(36,92,206,0.15)] 
-          hover:shadow-[8px_8px_20px_rgba(36,92,206,0.25)]
-          transition-all duration-300 hover:scale-[1.02]
-          hover:-translate-y-1 group"
+                      shadow-[4px_4px_12px_rgba(36,92,206,0.15)] 
+                      hover:shadow-[8px_8px_20px_rgba(36,92,206,0.25)]
+                      transition-all duration-300 hover:scale-[1.02]
+                      hover:-translate-y-1 group block cursor-pointer"
                     >
-                      {/* Header Card */}
                       <div className="flex gap-3 items-start mb-4 pb-4 border-b border-gray-100">
                         <div
                           className="bg-linear-to-br from-[#245CCE] to-[#1a4ba8] p-3 rounded-xl 
-            group-hover:scale-110 transition-transform duration-300"
+                          group-hover:scale-110 transition-transform duration-300"
                         >
                           <FileSpreadsheet size={24} className="text-white" />
                         </div>
@@ -193,9 +186,7 @@ export default function BerandaKadis() {
                         </div>
                       </div>
 
-                      {/* Content */}
                       <div className="space-y-3">
-                        {/* Target */}
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 font-medium">
                             Target
@@ -205,7 +196,6 @@ export default function BerandaKadis() {
                           </span>
                         </div>
 
-                        {/* Realisasi Target */}
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 font-medium">
                             Realisasi
@@ -215,7 +205,6 @@ export default function BerandaKadis() {
                           </span>
                         </div>
 
-                        {/* Anggaran */}
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 font-medium">
                             Anggaran
@@ -225,7 +214,6 @@ export default function BerandaKadis() {
                           </span>
                         </div>
 
-                        {/* Realisasi Anggaran */}
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 font-medium">
                             Terpakai
@@ -238,10 +226,8 @@ export default function BerandaKadis() {
                           </span>
                         </div>
 
-                        {/* Divider */}
                         <div className="border-t border-gray-100 my-3"></div>
 
-                        {/* Persentase Target */}
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs text-gray-600 font-medium">
@@ -277,7 +263,6 @@ export default function BerandaKadis() {
                           </div>
                         </div>
 
-                        {/* Persentase Anggaran */}
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-xs text-gray-600 font-medium">
@@ -313,7 +298,7 @@ export default function BerandaKadis() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })
               )}
@@ -322,7 +307,7 @@ export default function BerandaKadis() {
         )}
       </main>
 
-      {/* Modal Settings */}
+      {/* Modal Settings - sama seperti sebelumnya */}
       {openModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md relative shadow-xl max-h-[90vh] overflow-y-auto">
@@ -331,7 +316,6 @@ export default function BerandaKadis() {
             </h2>
 
             <form onSubmit={handleSaveSettings} className="space-y-5">
-              {/* Username */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   Username
@@ -356,7 +340,6 @@ export default function BerandaKadis() {
                 </div>
               </div>
 
-              {/* Email */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   Email
@@ -381,7 +364,6 @@ export default function BerandaKadis() {
                 </div>
               </div>
 
-              {/* Nomor HP */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   Nomor HP
@@ -403,14 +385,12 @@ export default function BerandaKadis() {
                 </div>
               </div>
 
-              {/* Divider */}
               <div className="border-t border-gray-200 pt-4 mt-6">
                 <h3 className="text-sm font-semibold text-gray-700 mb-4">
                   Ubah Password (Opsional)
                 </h3>
               </div>
 
-              {/* Password Lama */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   Password Lama
@@ -446,7 +426,6 @@ export default function BerandaKadis() {
                 </div>
               </div>
 
-              {/* Password Baru */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   Password Baru
@@ -482,7 +461,6 @@ export default function BerandaKadis() {
                 </div>
               </div>
 
-              {/* Konfirmasi Password Baru */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
                   Konfirmasi Password Baru
@@ -517,7 +495,6 @@ export default function BerandaKadis() {
                   </button>
                 </div>
 
-                {/* Password Match Indicator */}
                 {formSettings.newPassword && formSettings.confirmPassword && (
                   <p
                     className={`text-xs mt-1 ${
@@ -533,7 +510,6 @@ export default function BerandaKadis() {
                 )}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
