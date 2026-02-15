@@ -1,7 +1,9 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { UsersIcon } from "@heroicons/react/24/solid";
 
 const NAV_ITEMS = [
@@ -12,43 +14,163 @@ const NAV_ITEMS = [
   "Evaluasi",
 ];
 
+interface BeasiswaData {
+  id: number;
+  nama: string;
+  registrasi: string;
+  kampus: string;
+  kabupaten: string;
+  nominal: string;
+  tanggalCair: string;
+}
+
+interface APIResponse {
+  status: string;
+  program: string;
+  programSlug: string;
+  subProgram: string;
+  subProgramSlug: string;
+  type: string;
+  totalData: number;
+  data: BeasiswaData[];
+}
+
 export default function SubProgramPage() {
+  const params = useParams();
+  const router = useRouter();
+  const programSlug = params?.programSlug?.toString();
+  const subProgramSlug = params?.subProgramSlug?.toString();
+
   const [searchName, setSearchName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [tableData, setTableData] = useState<any[]>([]);
+  const [programInfo, setProgramInfo] = useState({
+    program: "",
+    subProgram: "",
+    totalData: 0,
+  });
+
+  console.log(programSlug, subProgramSlug);
+  console.log(process.env.NEXT_PUBLIC_BACKEND_API);
+
+  useEffect(() => {
+    if (!programSlug || !subProgramSlug) return;
+
+    const fetchData = async () => {
+      try {
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("accessToken="))
+          ?.split("=")[1];
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/gubernur/program/${programSlug}/${subProgramSlug}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          },
+        );
+
+        const json: APIResponse = await res.json();
+
+        if (json.status === "success") {
+          setTableData(json.data);
+          setProgramInfo({
+            program: json.program,
+            subProgram: json.subProgram,
+            totalData: json.totalData,
+          });
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [programSlug, subProgramSlug]);
+
+  // Filter data berdasarkan search
+  const filteredData = tableData.filter((item) =>
+    item.nama.toLowerCase().includes(searchName.toLowerCase()),
+  );
+
+  // Format nominal ke Rupiah
+  const formatRupiah = (nominal: string) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(parseInt(nominal));
+  };
+
+  const tableColumns = tableData.length > 0 ? Object.keys(tableData[0]) : [];
+
+  const formatCell = (value: any) => {
+    if (!value) return "-";
+
+    // nominal uang
+    if (!isNaN(value) && value.toString().length >= 6) {
+      return new Intl.NumberFormat("id-ID").format(value);
+    }
+
+    // tanggal
+    if (Date.parse(value)) {
+      return new Date(value).toLocaleDateString("id-ID");
+    }
+
+    return value.toString();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      document.cookie = "accessToken=; path=/; max-age=0";
+      document.cookie = "refreshToken=; path=/; max-age=0";
+
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      document.cookie = "accessToken=; path=/; max-age=0";
+      document.cookie = "refreshToken=; path=/; max-age=0";
+      router.push("/");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {/* ================= HEADER ================= */}
-      <header className="bg-blue-900 shadow-lg">
-        <div className="container mx-auto flex items-center justify-between px-6 py-4">
-          {/* Logo & Title */}
+      <header className="bg-blue-900 shadow">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3 text-white">
             <Image
               src="/logo-sulteng.png"
-              alt="Logo Sulawesi Tengah"
+              alt="Logo"
               width={50}
               height={50}
               className="object-contain"
             />
-            <div className="leading-tight">
-              <p className="text-xs font-semibold">PEMERINTAH PROVINSI</p>
-              <p className="text-sm font-bold">SULAWESI TENGAH</p>
+
+            <div>
+              <div className="text-xs">PEMERINTAH PROVINSI</div>
+              <div className="text-sm font-bold">SULAWESI TENGAH</div>
             </div>
           </div>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-6 text-sm text-white">
-            {NAV_ITEMS.map((item) => (
-              <a
-                key={item}
-                href="#"
-                className={`transition hover:text-yellow-400 ${
-                  item === "Monitoring" ? "font-bold" : ""
-                }`}
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
+          {/* Button Logout */}
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+          >
+            Logout
+          </button>
         </div>
       </header>
 
@@ -65,6 +187,20 @@ export default function SubProgramPage() {
           Provinsi Sulawesi Tengah
         </p>
       </section>
+
+      {/* ================= PROGRAM INFO ================= */}
+      {programInfo.program && (
+        <section className="max-w-6xl mx-auto px-6 pb-6">
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
+            <h2 className="text-2xl font-bold text-blue-900 uppercase">
+              {programInfo.program}
+            </h2>
+            <p className="text-lg text-blue-700 mt-2">
+              {programInfo.subProgram}
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ================= MONITORING ================= */}
       <section
@@ -139,70 +275,63 @@ export default function SubProgramPage() {
                     <UsersIcon className="h-7 w-7 text-white" />
                   </div>
                   <h2 className="text-lg md:text-xl font-semibold tracking-wide">
-                    TOTAL : <span className="font-bold">1000 BEASISWA</span>
+                    TOTAL :{" "}
+                    <span className="font-bold">
+                      {loading ? "..." : `${programInfo.totalData} BEASISWA`}
+                    </span>
                   </h2>
                 </div>
 
                 {/* ===== TABLE ===== */}
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-white text-xs text-blue-900 uppercase tracking-wider">
-                      <tr>
-                        <th className="px-6 py-4 text-left">Nama</th>
-                        <th className="px-6 py-4 text-left">No. Registrasi</th>
-                        <th className="px-6 py-4 text-left">Alamat</th>
-                        <th className="px-6 py-4 text-left">Nominal</th>
-                        <th className="px-6 py-4 text-left">Universitas</th>
-                        <th className="px-6 py-4 text-left">Kontak</th>
-                      </tr>
-                    </thead>
-
-                    <tbody className="bg-blue-900 divide-y divide-blue-700 text-white">
-                      {[
-                        {
-                          nama: "Jefri Nichol",
-                          reg: "22098477",
-                          alamat: "Jl. Sawerigading",
-                          nominal: "Rp.2.500.000",
-                          univ: "Hasanuddin",
-                          kontak: "08278809846",
-                        },
-                        {
-                          nama: "Jefri Nichol",
-                          reg: "22098477",
-                          alamat: "Jl. Sawerigading",
-                          nominal: "Rp.2.500.000",
-                          univ: "Hasanuddin",
-                          kontak: "08278809846",
-                        },
-                        {
-                          nama: "Aan Syawaluddin",
-                          reg: "22098477",
-                          alamat: "Jl. Sawerigading",
-                          nominal: "Rp.2.500.000",
-                          univ: "Hasanuddin",
-                          kontak: "08278809846",
-                        },
-                        {
-                          nama: "Nama",
-                          reg: "22098477",
-                          alamat: "Jl. Sawerigading",
-                          nominal: "Rp.2.500.000",
-                          univ: "Hasanuddin",
-                          kontak: "08278809846",
-                        },
-                      ].map((item, i) => (
-                        <tr key={i} className="hover:bg-blue-800/70 transition">
-                          <td className="px-6 py-4 font-medium">{item.nama}</td>
-                          <td className="px-6 py-4">{item.reg}</td>
-                          <td className="px-6 py-4">{item.alamat}</td>
-                          <td className="px-6 py-4">{item.nominal}</td>
-                          <td className="px-6 py-4">{item.univ}</td>
-                          <td className="px-6 py-4">{item.kontak}</td>
+                  {loading ? (
+                    <div className="text-center py-12 text-gray-600">
+                      <p className="text-lg font-semibold">Loading data...</p>
+                    </div>
+                  ) : filteredData.length === 0 ? (
+                    <div className="text-center py-12 text-gray-600">
+                      <p className="text-lg font-semibold">
+                        {searchName
+                          ? "Tidak ada data yang sesuai dengan pencarian"
+                          : "Tidak ada data tersedia"}
+                      </p>
+                    </div>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <thead className="bg-white text-xs text-blue-900 uppercase tracking-wider">
+                        <tr>
+                          {tableColumns.map((col) => (
+                            <th key={col} className="px-6 py-4 text-left">
+                              {col.replace(/_/g, " ").toUpperCase()}
+                            </th>
+                          ))}
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+
+                      <tbody className="bg-blue-900 divide-y divide-blue-700 text-white">
+                        {tableData.map((row, i) => (
+                          <tr key={i}>
+                            {tableColumns.map((col) => (
+                              <td key={col} className="px-6 py-4">
+                                {col.toLowerCase() === "nominal"
+                                  ? formatRupiah(row[col])
+                                  : col.toLowerCase().includes("tanggal")
+                                    ? new Date(row[col]).toLocaleDateString(
+                                        "id-ID",
+                                        {
+                                          day: "2-digit",
+                                          month: "long",
+                                          year: "numeric",
+                                        },
+                                      )
+                                    : (row[col] ?? "-")}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </div>
             </div>

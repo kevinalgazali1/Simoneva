@@ -165,7 +165,7 @@ export default function MonitoringGubernur() {
 
       {/* CAROUSEL */}
       <section
-        className="relative w-full"
+        className="relative w-full h-full"
         style={{ height: 600, backgroundImage: "url('/bg.png')" }}
       >
         {/* CENTER CONTENT */}
@@ -194,10 +194,10 @@ export default function MonitoringGubernur() {
         {/* ITEMS */}
         {programs.map((program, index) => {
           const relativeIndex = index - activeIndex;
-          const angle = relativeIndex * angleStep * (Math.PI / 180);
+          const angle = relativeIndex * angleStep * (Math.PI / 100);
 
-          const radiusX = 42;
-          const radiusY = 34;
+          const radiusX = 35;
+          const radiusY = 40;
 
           const x = 50 + radiusX * Math.sin(angle);
           const y = 50 - radiusY * Math.cos(angle);

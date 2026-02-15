@@ -210,6 +210,7 @@ export default function ProgramKerjaPage() {
                         {subPrograms.map((sub) => (
                           <button
                             key={sub.id}
+                            onClick={() => router.push(`/monitoring-gubernur/${slug}/${sub.slug}`)}
                             className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-full font-bold text-sm shadow-lg transition-all hover:shadow-xl hover:scale-105 text-left"
                           >
                             {sub.namaSubProgram}
