@@ -2,14 +2,67 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ email, password });
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API}/auth/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+          credentials: "include",
+        },
+      );
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.msg || "Login gagal");
+      }
+
+      const data = await res.json();
+
+      console.log("Login Response:", data);
+
+      // Simpan token di cookie
+      if (data.accessToken) {
+        document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${60 * 60 * 24}`;
+      }
+
+      // ✅ JANGAN pakai toLowerCase() - gunakan role langsung
+      const role = data.role;
+
+      console.log("Role detected:", role);
+
+      // ✅ Mapping dengan huruf kapital sesuai database
+      const roleRoutes: Record<string, string> = {
+        Staff: "/monitoring-staff",
+        "Kepala Dinas": "/monitoring-kadis",
+        Gubernur: "/monitoring-gubernur",
+      };
+
+      const redirectPath = roleRoutes[role];
+
+      if (redirectPath) {
+        console.log("Redirecting to:", redirectPath);
+        window.location.href = redirectPath;
+      } else {
+        alert("Role tidak dikenali: " + role);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      alert(err instanceof Error ? err.message : "Login gagal");
+    }
   };
 
   return (
@@ -57,7 +110,6 @@ export default function LoginPage() {
 
           {/* HERO OFFICIALS BACKGROUND */}
           <div className="relative w-screen min-h-[110vh] overflow-hidden">
-
             <div className="absolute inset-0 z-0">
               <Image
                 src="/bg.png"
@@ -110,13 +162,13 @@ export default function LoginPage() {
                            bg-blue-700 text-white text-sm font-semibold
                            px-4 py-2 rounded-full shadow"
                     >
-                      Gmail
+                      Username
                     </span>
                     <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="12345hg@gmail.com"
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="username"
                       className="w-full pl-28 pr-6 py-4 rounded-full
                        bg-white/80 border border-gray-500
                        text-black placeholder:to-black
@@ -129,22 +181,40 @@ export default function LoginPage() {
                   <div className="relative mb-8">
                     <span
                       className="absolute left-2 top-1/2 -translate-y-1/2
-                           bg-yellow-400 text-blue-900 text-sm font-bold
-                           px-4 py-2 rounded-full shadow"
+         bg-yellow-400 text-blue-900 text-sm font-bold
+         px-4 py-2 rounded-full shadow z-10"
                     >
                       Password
                     </span>
+
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="********"
-                      className="w-full pl-32 pr-6 py-4 rounded-full
-                       bg-white/80 border border-gray-500
-                       text-black placeholder:to-black
-                       focus:ring-2 focus:ring-blue-600 outline-none"
+                      className="w-full pl-32 pr-14 py-4 rounded-full
+     bg-white/80 border border-gray-500
+     text-black placeholder:text-gray-400
+     focus:ring-2 focus:ring-blue-600 outline-none"
                       required
                     />
+
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2
+         text-gray-600 hover:text-blue-600
+         transition-colors focus:outline-none"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
                   </div>
 
                   <button
