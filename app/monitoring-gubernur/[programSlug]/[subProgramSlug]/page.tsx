@@ -1,18 +1,11 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Image from "next/image";
+import Header from "@/components/Header";
+import KabupatenSelect from "@/components/KabupatenSelect";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { UsersIcon } from "@heroicons/react/24/solid";
-
-const NAV_ITEMS = [
-  "Profile",
-  "News",
-  "Dokumen Perencanaan",
-  "Monitoring",
-  "Evaluasi",
-];
 
 interface BeasiswaData {
   id: number;
@@ -35,13 +28,38 @@ interface APIResponse {
   data: BeasiswaData[];
 }
 
+interface SubProgram {
+  id: number;
+  namaSubProgram: string;
+  targetFisik: number;
+  realisasiFisik: number;
+  pendingFisik: number;
+  capaianFisik: string;
+  paguAnggaran: string;
+  realisasiAnggaran: string;
+  sisaAnggaran: string;
+  serapanAnggaran: string;
+}
+
+interface MonitoringStats {
+  status: string;
+  msg: string;
+  data: Array<{
+    id: number;
+    namaProgram: string;
+    subPrograms: SubProgram[];
+  }>;
+}
+
 export default function SubProgramPage() {
   const params = useParams();
   const router = useRouter();
   const programSlug = params?.programSlug?.toString();
   const subProgramSlug = params?.subProgramSlug?.toString();
+  const [kabupaten, setKabupaten] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const [searchName, setSearchName] = useState("");
   const [loading, setLoading] = useState(true);
   const [tableData, setTableData] = useState<any[]>([]);
   const [programInfo, setProgramInfo] = useState({
@@ -49,9 +67,19 @@ export default function SubProgramPage() {
     subProgram: "",
     totalData: 0,
   });
+  const [monitoringStats, setMonitoringStats] = useState<SubProgram | null>(
+    null,
+  );
 
-  console.log(programSlug, subProgramSlug);
-  console.log(process.env.NEXT_PUBLIC_BACKEND_API);
+  // Helper function to convert string to slug
+  const toSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/-+/g, "-"); // Replace multiple hyphens with single hyphen
+  };
 
   useEffect(() => {
     if (!programSlug || !subProgramSlug) return;
@@ -63,6 +91,7 @@ export default function SubProgramPage() {
           .find((row) => row.startsWith("accessToken="))
           ?.split("=")[1];
 
+        // Fetch detail data
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API}/gubernur/program/${programSlug}/${subProgramSlug}`,
           {
@@ -82,8 +111,73 @@ export default function SubProgramPage() {
             subProgram: json.subProgram,
             totalData: json.totalData,
           });
-          setLoading(false);
         }
+
+        // Fetch monitoring stats
+        const statsRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/gubernur/monitoring/stats`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          },
+        );
+
+        const statsJson: MonitoringStats = await statsRes.json();
+
+        if (statsJson.status === "success") {
+          // Find the current sub program from stats using better matching
+          let foundSubProgram: SubProgram | null = null;
+
+          // First, try to match by sub program name from the detail API
+          if (json.subProgram) {
+            for (const program of statsJson.data) {
+              const subProgram = program.subPrograms.find(
+                (sp) => sp.namaSubProgram === json.subProgram,
+              );
+
+              if (subProgram) {
+                foundSubProgram = subProgram;
+                console.log("Found by exact name match:", subProgram);
+                break;
+              }
+            }
+          }
+
+          // If not found, try slug matching
+          if (!foundSubProgram) {
+            for (const program of statsJson.data) {
+              const subProgram = program.subPrograms.find(
+                (sp) =>
+                  toSlug(sp.namaSubProgram) === subProgramSlug?.toLowerCase(),
+              );
+
+              if (subProgram) {
+                foundSubProgram = subProgram;
+                console.log("Found by slug match:", subProgram);
+                break;
+              }
+            }
+          }
+
+          // Debug: Log if not found
+          if (!foundSubProgram) {
+            console.log("Sub program not found. Looking for:", subProgramSlug);
+            console.log("Available sub programs:");
+            statsJson.data.forEach((prog) => {
+              prog.subPrograms.forEach((sp) => {
+                console.log(
+                  `- ${sp.namaSubProgram} (slug: ${toSlug(sp.namaSubProgram)})`,
+                );
+              });
+            });
+          }
+
+          setMonitoringStats(foundSubProgram);
+        }
+
+        setLoading(false);
       } catch (err) {
         console.error("Error fetching data:", err);
         setLoading(false);
@@ -93,9 +187,12 @@ export default function SubProgramPage() {
     fetchData();
   }, [programSlug, subProgramSlug]);
 
-  // Filter data berdasarkan search
+  // Filter data berdasarkan kabupaten
   const filteredData = tableData.filter((item) =>
-    item.nama.toLowerCase().includes(searchName.toLowerCase()),
+    kabupaten
+      ? (item.kabupaten ?? "").toLowerCase().trim() ===
+        kabupaten.toLowerCase().trim()
+      : true,
   );
 
   // Format nominal ke Rupiah
@@ -107,23 +204,14 @@ export default function SubProgramPage() {
     }).format(parseInt(nominal));
   };
 
-  const tableColumns = tableData.length > 0 ? Object.keys(tableData[0]) : [];
+  const tableColumns =
+    tableData.length > 0
+      ? Object.keys(tableData[0]).filter((col) => col.toLowerCase() !== "id")
+      : [];
 
-  const formatCell = (value: any) => {
-    if (!value) return "-";
-
-    // nominal uang
-    if (!isNaN(value) && value.toString().length >= 6) {
-      return new Intl.NumberFormat("id-ID").format(value);
-    }
-
-    // tanggal
-    if (Date.parse(value)) {
-      return new Date(value).toLocaleDateString("id-ID");
-    }
-
-    return value.toString();
-  };
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
+  const totalPages = Math.ceil(filteredData.length / pageSize);
 
   const handleLogout = async () => {
     try {
@@ -147,42 +235,17 @@ export default function SubProgramPage() {
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
       {/* ================= HEADER ================= */}
-      <header className="bg-blue-900 shadow">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3 text-white">
-            <Image
-              src="/logo-sulteng.png"
-              alt="Logo"
-              width={50}
-              height={50}
-              className="object-contain"
-            />
-
-            <div>
-              <div className="text-xs">PEMERINTAH PROVINSI</div>
-              <div className="text-sm font-bold">SULAWESI TENGAH</div>
-            </div>
-          </div>
-
-          {/* Button Logout */}
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+      <Header onLogout={handleLogout} />
 
       {/* ================= TITLE ================= */}
-      <section className="py-12 text-center">
-        <h1 className="mb-3 text-5xl font-bold text-blue-900 md:text-6xl">
+      <section className="py-8 md:py-12 text-center px-4">
+        <h1 className="mb-3 text-3xl md:text-5xl lg:text-6xl font-bold text-blue-900">
           SIMONEVA BERANI
         </h1>
-        <p className="text-lg text-blue-800">
+        <p className="text-base md:text-lg text-blue-800">
           Sistem Informasi, Monitoring dan Evaluasi 9 Program Kerja
         </p>
-        <p className="mt-1 text-blue-700">
+        <p className="mt-1 text-sm md:text-base text-blue-700">
           <strong>BAPPEDA</strong> – Badan Perencanaan Pembangunan Daerah
           Provinsi Sulawesi Tengah
         </p>
@@ -190,36 +253,111 @@ export default function SubProgramPage() {
 
       {/* ================= PROGRAM INFO ================= */}
       {programInfo.program && (
-        <section className="max-w-6xl mx-auto px-6 pb-6">
-          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
-            <h2 className="text-2xl font-bold text-blue-900 uppercase">
+        <section className="max-w-6xl mx-auto px-4 md:px-6 pb-6">
+          <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 text-center">
+            <h2 className="text-xl md:text-2xl font-bold text-blue-900 uppercase">
               {programInfo.program}
             </h2>
-            <p className="text-lg text-blue-700 mt-2">
+            <p className="text-base md:text-lg text-blue-700 mt-2">
               {programInfo.subProgram}
             </p>
           </div>
         </section>
       )}
 
-      {/* ================= MONITORING ================= */}
+      {/* ================= MONITORING STATS CARDS ================= */}
+      {monitoringStats && (
+        <section className="max-w-6xl mx-auto px-4 md:px-6 pb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Target Fisik */}
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
+              <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
+                Target Fisik
+              </h3>
+              <p className="text-2xl md:text-3xl font-bold">
+                {monitoringStats.targetFisik.toLocaleString("id-ID")}
+              </p>
+            </div>
+
+            {/* Realisasi Fisik */}
+            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
+              <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
+                Realisasi Fisik
+              </h3>
+              <p className="text-2xl md:text-3xl font-bold">
+                {monitoringStats.realisasiFisik.toLocaleString("id-ID")}
+              </p>
+              <p className="text-xs md:text-sm mt-1 opacity-90">
+                Capaian: {monitoringStats.capaianFisik}
+              </p>
+            </div>
+
+            {/* Pagu Anggaran */}
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
+              <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
+                Pagu Anggaran
+              </h3>
+              <p className="text-lg md:text-xl font-bold break-words">
+                {monitoringStats.paguAnggaran}
+              </p>
+            </div>
+
+            {/* Serapan Anggaran */}
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
+              <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
+                Serapan Anggaran
+              </h3>
+              <p className="text-2xl md:text-3xl font-bold">
+                {monitoringStats.serapanAnggaran}
+              </p>
+              <p className="text-xs md:text-sm mt-1 opacity-90">
+                Realisasi: {monitoringStats.realisasiAnggaran}
+              </p>
+            </div>
+          </div>
+
+          {/* Detail Stats */}
+          <div className="mt-4 bg-white rounded-xl shadow-lg p-4 md:p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border-l-4 border-yellow-500 pl-4">
+                <h4 className="text-xs md:text-sm font-semibold text-gray-600 mb-1">
+                  Pending Fisik
+                </h4>
+                <p className="text-xl md:text-2xl font-bold text-gray-800">
+                  {monitoringStats.pendingFisik.toLocaleString("id-ID")}
+                </p>
+              </div>
+              <div className="border-l-4 border-red-500 pl-4">
+                <h4 className="text-xs md:text-sm font-semibold text-gray-600 mb-1">
+                  Sisa Anggaran
+                </h4>
+                <p className="text-lg md:text-xl font-bold text-gray-800 break-words">
+                  {monitoringStats.sisaAnggaran}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================= MONITORING TABLE ================= */}
       <section
-        className="relative w-full h-full py-20"
+        className="relative w-full h-full py-8 md:py-8"
         style={{ backgroundImage: "url('/bg.png')" }}
       >
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 md:px-6">
           <div className="relative pt-6">
             {/* Badge */}
-            <div className="absolute -top-2 z-20">
-              <div className="rounded-2xl border-4 border-white px-10 py-4 shadow-xl backdrop-blur-xl">
-                <span className="text-2xl font-extrabold tracking-wide text-blue-900">
-                  MONITORING
+            <div className="absolute -top-2 z-20 left-1/12 transform -translate-x-1 md:left-0 md:transform-none">
+              <div className="rounded-2xl border-4 border-white px-6 md:px-10 py-3 md:py-4 shadow-xl backdrop-blur-xl">
+                <span className="text-lg md:text-2xl font-extrabold tracking-wide text-blue-900">
+                  DATA PENERIMA
                 </span>
               </div>
             </div>
 
             {/* Card */}
-            <div className="relative overflow-hidden rounded-3xl pt-12 shadow-2xl bg-white">
+            <div className="relative overflow-hidden rounded-3xl pt-12 md:pt-16 shadow-2xl bg-white">
               {/* Background Blur */}
               <div
                 className="absolute inset-0 z-0 scale-110 blur-2xl"
@@ -230,51 +368,49 @@ export default function SubProgramPage() {
                 }}
               />
 
-              {/* ================= SEARCH NAMA ================= */}
-              <div className="absolute right-8 top-6 z-30 w-72">
-                <div className="relative">
-                  {/* Input */}
-                  <input
-                    type="text"
-                    value={searchName}
-                    onChange={(e) => setSearchName(e.target.value)}
-                    placeholder="Cari nama..."
-                    className="
-        w-full rounded-xl border-2 border-blue-600
-        bg-white px-5 py-2.5
-        text-sm font-semibold text-blue-700
-        shadow-md outline-none
-        placeholder:text-blue-400
-        focus:ring-2 focus:ring-blue-300
-      "
-                  />
+              {/* ================= Filtering ================= */}
+              <div className="relative z-20">
+                <div className="flex flex-col md:flex-row items-stretch md:items-center px-4 justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="border-2 border-blue-600 bg-white rounded-lg px-2 py-1 text-xs md:text-sm font-semibold text-blue-700 shadow-md whitespace-nowrap">
+                      Tampilkan:
+                    </span>
 
-                  {/* Icon */}
-                  <svg
-                    className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-blue-500"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 21l-4.35-4.35"
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-xs md:text-sm font-semibold text-blue-700 shadow-md"
+                    >
+                      <option value={10}>10</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
+                  {/* filter kabupaten */}
+                  <div className="w-full md:w-auto">
+                    <KabupatenSelect
+                      value={kabupaten}
+                      onChange={(value) => {
+                        setKabupaten(value);
+                        setCurrentPage(1);
+                      }}
                     />
-                    <circle cx="11" cy="11" r="7" />
-                  </svg>
+                  </div>
                 </div>
               </div>
 
               {/* Content Section */}
-              <div className="relative z-10 mt-10">
+              <div className="relative z-10 mt-5">
                 {/* ===== TOP TOTAL BAR ===== */}
-                <div className="bg-blue-800 text-white px-6 py-5 flex items-center justify-center gap-4">
-                  <div className="bg-white/10 p-3 rounded-lg">
-                    <UsersIcon className="h-7 w-7 text-white" />
+                <div className="bg-blue-800 text-white px-4 md:px-6 py-4 md:py-5 flex items-center justify-center gap-3 md:gap-4">
+                  <div className="bg-white/10 p-2 md:p-3 rounded-lg">
+                    <UsersIcon className="h-5 w-5 md:h-7 md:w-7 text-white" />
                   </div>
-                  <h2 className="text-lg md:text-xl font-semibold tracking-wide">
+                  <h2 className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-center">
                     TOTAL :{" "}
                     <span className="font-bold">
                       {loading ? "..." : `${programInfo.totalData} BEASISWA`}
@@ -286,22 +422,27 @@ export default function SubProgramPage() {
                 <div className="overflow-x-auto">
                   {loading ? (
                     <div className="text-center py-12 text-gray-600">
-                      <p className="text-lg font-semibold">Loading data...</p>
+                      <p className="text-base md:text-lg font-semibold">
+                        Loading data...
+                      </p>
                     </div>
                   ) : filteredData.length === 0 ? (
                     <div className="text-center py-12 text-gray-600">
-                      <p className="text-lg font-semibold">
-                        {searchName
-                          ? "Tidak ada data yang sesuai dengan pencarian"
+                      <p className="text-base md:text-lg font-semibold">
+                        {kabupaten
+                          ? "Tidak ada data untuk kabupaten yang dipilih"
                           : "Tidak ada data tersedia"}
                       </p>
                     </div>
                   ) : (
-                    <table className="w-full text-sm">
-                      <thead className="bg-white text-xs text-blue-900 uppercase tracking-wider">
+                    <table className="w-full text-xs md:text-sm">
+                      <thead className="bg-white text-xs uppercase tracking-wider text-blue-900">
                         <tr>
                           {tableColumns.map((col) => (
-                            <th key={col} className="px-6 py-4 text-left">
+                            <th
+                              key={col}
+                              className="px-3 md:px-6 py-3 md:py-4 text-left whitespace-nowrap"
+                            >
                               {col.replace(/_/g, " ").toUpperCase()}
                             </th>
                           ))}
@@ -309,10 +450,13 @@ export default function SubProgramPage() {
                       </thead>
 
                       <tbody className="bg-blue-900 divide-y divide-blue-700 text-white">
-                        {tableData.map((row, i) => (
+                        {paginatedData.map((row, i) => (
                           <tr key={i}>
                             {tableColumns.map((col) => (
-                              <td key={col} className="px-6 py-4">
+                              <td
+                                key={col}
+                                className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap"
+                              >
                                 {col.toLowerCase() === "nominal"
                                   ? formatRupiah(row[col])
                                   : col.toLowerCase().includes("tanggal")
@@ -332,6 +476,31 @@ export default function SubProgramPage() {
                       </tbody>
                     </table>
                   )}
+                </div>
+                <div className="flex flex-row items-center justify-center gap-2 my-4 px-4">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="border-2 border-blue-600 bg-white rounded-lg px-2 sm:px-3 py-1 text-xs font-semibold text-blue-700 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Prev
+                  </button>
+
+                  <span className="text-center border-2 border-blue-600 bg-white rounded-lg px-2 sm:px-3 py-1 text-xs font-semibold text-blue-700 shadow-md whitespace-nowrap">
+                    Hal {currentPage}/{totalPages || 1}
+                  </span>
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) =>
+                        p * pageSize < filteredData.length ? p + 1 : p,
+                      )
+                    }
+                    disabled={currentPage >= totalPages}
+                    className="border-2 border-blue-600 bg-white rounded-lg px-2 sm:px-3 py-1 text-xs font-semibold text-blue-700 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             </div>
