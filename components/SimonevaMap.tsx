@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import type VectorLayer from "ol/layer/Vector";
+import type Map from "ol/Map";
+import Feature from "ol/Feature";
 
 interface DetailProgram {
   namaProgram: string;
@@ -15,6 +18,10 @@ interface MonitoringWilayah {
   totalPenerima: number;
   totalRealisasi: string;
   detailProgram: DetailProgram[];
+}
+
+interface MapWithData extends Map {
+  _dataWilayah?: MonitoringWilayah[];
 }
 
 interface ApiResponse {
@@ -56,11 +63,10 @@ function normalizeNama(nama: string): string {
 }
 
 export default function SimonevaMap() {
-  const mapRef = useRef(null);
-  const mapInstance = useRef(null);
-  const layerRef = useRef(null);
-  const overlayRef = useRef(null);
-  const highlightLayerRef = useRef(null);
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInstance = useRef<Map | null>(null);
+  const layerRef = useRef<VectorLayer | null>(null);
+  const highlightLayerRef = useRef<VectorLayer | null>(null);
 
   const [selected, setSelected] = useState<
     (MonitoringWilayah & { namaDisplay: string }) | null
@@ -184,9 +190,15 @@ export default function SimonevaMap() {
       highlightLayerRef.current = highlightLayer;
 
       const popupEl = document.getElementById("ol-popup");
-      const popup = new Overlay({ element: popupEl, offset: [0, -10] });
+      if (!popupEl) return;
+
+      const popup = new Overlay({
+        element: popupEl,
+        offset: [0, -10],
+      });
       overlayRef.current = popup;
 
+      if (!mapRef.current) return;
       const map = new Map({
         target: mapRef.current,
         layers: [
@@ -199,11 +211,14 @@ export default function SimonevaMap() {
       });
       mapInstance.current = map;
 
-      map.getView().fit(source.getExtent(), {
-        size: map.getSize(),
-        padding: [50, 50, 50, 50],
-        duration: 1000,
-      });
+      const extent = source.getExtent();
+      if (extent) {
+        map.getView().fit(extent, {
+          size: map.getSize(),
+          padding: [50, 50, 50, 50],
+          duration: 1000,
+        });
+      }
 
       // Hover
       map.on("pointermove", (evt) => {
@@ -214,7 +229,7 @@ export default function SimonevaMap() {
         );
         map.getTargetElement().style.cursor = feature ? "pointer" : "";
         const popupContent = document.getElementById("ol-popup-content");
-        if (feature) {
+        if (popupContent && feature) {
           popupContent.innerHTML = `
             <div style="text-align:center;font-size:12px;color:#153893">
               <strong>${feature.get("nama")}</strong>
@@ -231,7 +246,7 @@ export default function SimonevaMap() {
       map.on("singleclick", (evt) => {
         highlightSource.clear();
         map.forEachFeatureAtPixel(evt.pixel, (feat) => {
-          highlightSource.addFeature(feat);
+          highlightSource.addFeature(feat as Feature);
           const namaGeo: string = feat.get("nama") ?? "";
 
           // Cari data API berdasarkan normalisasi nama
@@ -259,7 +274,10 @@ export default function SimonevaMap() {
                 },
           );
 
-          map.getView().fit(feat.getGeometry().getExtent(), {
+          const geom = feat.getGeometry();
+          if (!geom) return;
+
+          map.getView().fit(geom.getExtent(), {
             padding: [100, 100, 100, 100],
             duration: 1000,
           });
@@ -278,16 +296,19 @@ export default function SimonevaMap() {
   // Update referensi dataWilayah di instance map agar event handler bisa akses
   useEffect(() => {
     if (mapInstance.current) {
-      (mapInstance.current as any)._dataWilayah = dataWilayah;
+      (mapInstance.current as MapWithData)._dataWilayah = dataWilayah;
     }
   }, [dataWilayah]);
 
   const focusWilayahFromList = (w: MonitoringWilayah) => {
-    if (!mapInstance.current || !layerRef.current) return;
+    if (!mapInstance.current || !layerRef.current || !highlightLayerRef.current)
+      return;
 
     const namaGeo = normalizeNama(w.namaKabupaten);
     const source = layerRef.current.getSource();
     const highlightSource = highlightLayerRef.current.getSource();
+
+    if (!source || !highlightSource) return;
 
     highlightSource.clear();
 
@@ -295,7 +316,10 @@ export default function SimonevaMap() {
       if (feat.get("nama") === namaGeo) {
         highlightSource.addFeature(feat);
 
-        mapInstance.current.getView().fit(feat.getGeometry().getExtent(), {
+        const geom = feat.getGeometry();
+        if (!geom || !mapInstance.current) return;
+
+        mapInstance.current.getView().fit(geom.getExtent(), {
           padding: [100, 100, 100, 100],
           duration: 1000,
         });
@@ -308,18 +332,20 @@ export default function SimonevaMap() {
   const resetDashboard = () => {
     setSelected(null);
 
-    // Reset highlight layer
     if (highlightLayerRef.current) {
-      highlightLayerRef.current.getSource().clear();
+      highlightLayerRef.current.getSource()?.clear();
     }
 
-    // Reset zoom ke seluruh wilayah
     if (mapInstance.current && layerRef.current) {
       const source = layerRef.current.getSource();
-      mapInstance.current.getView().fit(source.getExtent(), {
-        padding: [50, 50, 50, 50],
-        duration: 800,
-      });
+      const extent = source?.getExtent();
+
+      if (extent && mapInstance.current) {
+        mapInstance.current.getView().fit(extent, {
+          padding: [50, 50, 50, 50],
+          duration: 800,
+        });
+      }
     }
   };
 
