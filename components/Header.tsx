@@ -39,6 +39,13 @@ export default function Header({ onLogout }: HeaderProps) {
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex gap-2">
+
+          <Link href="/monitoring-gubernur/sebaran-wilayah">
+            <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+              Sebaran Wilayah
+            </button>
+          </Link>
+
           <Link href="/monitoring-gubernur">
             <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
               Monitoring

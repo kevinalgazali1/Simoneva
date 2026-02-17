@@ -179,13 +179,6 @@ max-w-6xl mx-auto px-4 pb-16
                 />
               </div>
 
-              {/* Button Sebaran Wilayah */}
-              <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-30">
-                <button className="bg-white text-blue-700 border-2 border-blue-600 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-blue-50 transition-all shadow-md hover:shadow-lg">
-                  Sebaran Wilayah
-                </button>
-              </div>
-
               {/* Content */}
               <div className="relative z-20 pt-16">
                 <div className="flex items-center justify-center">
