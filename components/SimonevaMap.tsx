@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type VectorLayer from "ol/layer/Vector";
 import type Map from "ol/Map";
 import Feature from "ol/Feature";
+import Overlay from "ol/Overlay";
 
 interface DetailProgram {
   namaProgram: string;
@@ -67,6 +68,7 @@ export default function SimonevaMap() {
   const mapInstance = useRef<Map | null>(null);
   const layerRef = useRef<VectorLayer | null>(null);
   const highlightLayerRef = useRef<VectorLayer | null>(null);
+  const overlayRef = useRef<Overlay | null>(null);
 
   const [selected, setSelected] = useState<
     (MonitoringWilayah & { namaDisplay: string }) | null
@@ -250,7 +252,7 @@ export default function SimonevaMap() {
           const namaGeo: string = feat.get("nama") ?? "";
 
           // Cari data API berdasarkan normalisasi nama
-          const apiEntry = (map as any)._dataWilayah?.find(
+          const apiEntry = (map as MapWithData)._dataWilayah?.find(
             (d: MonitoringWilayah) =>
               normalizeNama(d.namaKabupaten) === namaGeo,
           );
