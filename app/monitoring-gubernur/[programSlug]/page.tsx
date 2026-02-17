@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import Header from "@/components/Header";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -34,7 +34,6 @@ export default function ProgramKerjaPage() {
       .join(" ");
   };
 
-  console.log("Slug params:", slug);
   useEffect(() => {
     if (!slug) return;
 
@@ -94,77 +93,76 @@ export default function ProgramKerjaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 antialiased">
       {/* HEADER */}
-      <header className="bg-blue-900 shadow">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3 text-white">
-            <Image
-              src="/logo-sulteng.png"
-              alt="Logo"
-              width={50}
-              height={50}
-              className="object-contain"
-            />
-
-            <div>
-              <div className="text-xs">PEMERINTAH PROVINSI</div>
-              <div className="text-sm font-bold">SULAWESI TENGAH</div>
-            </div>
-          </div>
-
-          {/* Button Logout */}
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
+      <Header onLogout={handleLogout} />
 
       {/* TITLE */}
-      <section className="text-center py-12">
-        <h1 className="text-5xl md:text-6xl font-bold text-blue-900 mb-3">
+      <section className="text-center py-8 sm:py-10 px-4 border-b border-gray-200 bg-white/70 backdrop-blur-md">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-900 tracking-tight">
           SIMONEVA BERANI
         </h1>
-        <p className="text-blue-800 text-lg mt-2">
+
+        <p className="text-sm sm:text-base md:text-lg text-blue-800 mt-1">
           Sistem Informasi, Monitoring dan evaluasi 9 Program Kerja
         </p>
-        <p className="text-blue-700 mt-1">
+
+        <p className="text-xs sm:text-sm md:text-base text-blue-700 mt-1">
           <strong>BAPPEDA</strong> – Badan Perencanaan Pembangunan Daerah
           Provinsi Sulawesi Tengah
         </p>
       </section>
 
-      {/* PROGRAM TITLE */}
-      {programTitle && (
-        <section className="max-w-6xl mx-auto px-6 pb-6">
-          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <h2 className="text-4xl font-bold text-blue-900 uppercase">
-              {programTitle}
-            </h2>
-          </div>
-        </section>
-      )}
-
       {/* MONITORING SECTION */}
       <section
-        className="relative w-full py-20 bg-cover bg-center"
-        style={{ minHeight: 600, backgroundImage: "url('/bg.png')" }}
+        className="relative w-full py-12 sm:py-20 bg-cover bg-center"
+        style={{
+          minHeight: "auto",
+          backgroundImage: "url('/bg.png')",
+        }}
       >
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="relative pt-4">
+        <div
+          className="
+max-w-6xl mx-auto px-4 pb-16
+"
+        >
+          <div
+            className="
+              relative
+              bg-white/95 backdrop-blur-lg
+              rounded-3xl
+              shadow-2xl
+              border border-gray-100
+              p-6 sm:p-10
+              "
+          >
             {/* Badge MONITORING */}
-            <div className="absolute -top-2 left-0 z-30">
-              <div className="px-10 py-4 rounded-2xl shadow-xl backdrop-blur-xl border-4 border-white bg-white/90">
-                <span className="font-extrabold text-blue-900 text-2xl tracking-wide">
-                  MONITORING
+            <div className="absolute -top-6 sm:-top-2 left-1/3 sm:left-0 -translate-x-1/2 sm:translate-x-0 z-30">
+              <div className="mb-6 text-center">
+                <span
+                  className="
+                  inline-block
+                  sm:px-6 sm:py-2
+                  px-6 py-2
+                  rounded-xl
+                  text-sm sm:text-base md:text-lg font-semibold
+                  text-blue-900
+                  bg-blue-50
+                  border border-blue-100 shadow-sm
+                "
+                >
+                  Monitoring Program {programTitle}
                 </span>
               </div>
             </div>
 
-            <div className="relative rounded-3xl p-12 shadow-2xl overflow-hidden bg-white/95">
+            <div
+              className="relative rounded-3xl 
+              p-6 sm:p-12 
+              shadow-xl sm:shadow-2xl 
+              overflow-hidden 
+              bg-white/95 backdrop-blur-md"
+            >
               {/* Background Gradient - Red to Blue blur effect */}
               <div className="absolute inset-0 z-0 overflow-hidden rounded-3xl">
                 <div
@@ -173,8 +171,8 @@ export default function ProgramKerjaPage() {
                     backgroundImage: "url('/indo.png')",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
-                    filter: "blur(25px)",
-                    transform: "scale(1.1)",
+                    filter: "blur(18px)",
+                    transform: "scale(1.05)",
                     width: "100%",
                     height: "100%",
                   }}
@@ -182,8 +180,8 @@ export default function ProgramKerjaPage() {
               </div>
 
               {/* Button Sebaran Wilayah */}
-              <div className="absolute top-6 right-8 z-30">
-                <button className="bg-white text-blue-700 border-2 border-blue-600 px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-all shadow-md hover:shadow-lg">
+              <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-30">
+                <button className="bg-white text-blue-700 border-2 border-blue-600 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-blue-50 transition-all shadow-md hover:shadow-lg">
                   Sebaran Wilayah
                 </button>
               </div>
@@ -194,10 +192,10 @@ export default function ProgramKerjaPage() {
                   {/* Buttons Grid */}
                   <div className="w-full">
                     {loading ? (
-                      <div className="text-center py-8">
-                        <p className="text-gray-600 text-lg font-semibold">
-                          Loading data...
-                        </p>
+                      <div className="flex justify-center py-12">
+                        <div className="animate-pulse text-blue-800 font-semibold">
+                          Memuat data program...
+                        </div>
                       </div>
                     ) : !subPrograms || subPrograms.length === 0 ? (
                       <div className="text-center py-8">
@@ -206,13 +204,30 @@ export default function ProgramKerjaPage() {
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {subPrograms.map((sub) => (
                           <button
                             key={sub.id}
-                            className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-6 rounded-full font-bold text-sm shadow-lg transition-all hover:shadow-xl hover:scale-105 text-left"
+                            onClick={() =>
+                              router.push(
+                                `/monitoring-gubernur/${slug}/${sub.slug}`,
+                              )
+                            }
+                            className="
+group
+bg-white
+border border-gray-200
+hover:border-blue-300
+rounded-2xl
+p-5
+shadow-sm hover:shadow-xl
+transition-all duration-300 hover:-translate-y-1
+text-center
+"
                           >
-                            {sub.namaSubProgram}
+                            <p className="font-semibold text-blue-900 group-hover:text-blue-700">
+                              {sub.namaSubProgram}
+                            </p>
                           </button>
                         ))}
                       </div>
@@ -221,7 +236,11 @@ export default function ProgramKerjaPage() {
                 </div>
 
                 {/* Footer Text */}
-                <p className="text-center text-sm text-gray-800 mt-12">
+                <p
+                  className="text-center text-xs sm:text-sm 
+                  text-gray-700 mt-10 sm:mt-12 
+                  tracking-wide px-4"
+                >
                   Find answer in our{" "}
                   <span className="font-bold text-black">HELP CENTER</span>
                 </p>
