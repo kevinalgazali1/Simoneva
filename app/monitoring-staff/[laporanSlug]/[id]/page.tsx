@@ -203,6 +203,7 @@ export default function LaporanPage() {
 
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
+  const totalPages = Math.ceil(filteredData.length / pageSize);
 
   return (
     <div className="min-h-screen">
@@ -276,6 +277,7 @@ export default function LaporanPage() {
         </div>
 
         {/* Table */}
+        {/* Table */}
         <div className="rounded-xl shadow p-4 border-2 border-blue-700">
           {loading && (
             <div className="flex items-center gap-2 mb-3 text-[#245CCE]">
@@ -284,12 +286,13 @@ export default function LaporanPage() {
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          {/* Scroll hanya tabel */}
+          <div className="overflow-x-auto overflow-y-auto max-h-125">
             <table className="min-w-175 w-full border-collapse">
-              <thead className="bg-blue-700 text-white">
+              <thead className="bg-blue-700 text-white sticky top-0 z-10">
                 <tr>
                   {columns.map((col) => (
-                    <th key={col} className="p-2 sm:p-3 text-left capitalize">
+                    <th key={col} className="p-2 sm:p-3 text-center capitalize">
                       {formatColumn(col)}
                     </th>
                   ))}
@@ -300,7 +303,7 @@ export default function LaporanPage() {
                 {paginatedData.map((item, i) => (
                   <tr
                     key={i}
-                    className="text-black hover:bg-blue-700 hover:text-white transition"
+                    className="text-black text-center hover:bg-blue-700 hover:text-white transition"
                   >
                     {columns.map((col) => (
                       <td key={col} className="p-2 sm:p-3 whitespace-nowrap">
@@ -316,7 +319,8 @@ export default function LaporanPage() {
               </tbody>
             </table>
           </div>
-          {/* Pagination */}
+
+          {/* Pagination tetap di luar scroll */}
           <div className="flex flex-wrap items-center gap-2 mt-4">
             <button
               onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
@@ -326,7 +330,7 @@ export default function LaporanPage() {
             </button>
 
             <span className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-sm font-semibold text-[#245CCE] shadow-md">
-              Halaman {currentPage}
+              Halaman {currentPage} / {totalPages}
             </span>
 
             <button

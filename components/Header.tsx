@@ -29,6 +29,7 @@ export default function Header({ onLogout }: HeaderProps) {
     <header className="bg-blue-900 shadow relative">
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         {/* LOGO */}
+        <Link href="/monitoring-gubernur">
         <div className="flex items-center gap-3 text-white">
           <Image src="/logo-sulteng.png" alt="Logo" width={50} height={50} />
           <div>
@@ -36,12 +37,20 @@ export default function Header({ onLogout }: HeaderProps) {
             <div className="text-sm font-bold">SULAWESI TENGAH</div>
           </div>
         </div>
+        </Link>
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex gap-2">
+
           <Link href="/monitoring-gubernur">
             <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-              Monitoring
+              Beranda
+            </button>
+          </Link>
+
+          <Link href="/monitoring-gubernur/sebaran-wilayah">
+            <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+              Sebaran Wilayah
             </button>
           </Link>
 

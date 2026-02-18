@@ -123,8 +123,8 @@ export default function ProgramKerjaPage() {
       >
         <div
           className="
-max-w-6xl mx-auto px-4 pb-16
-"
+          max-w-6xl mx-auto px-4 pb-16
+          "
         >
           <div
             className="
@@ -179,15 +179,25 @@ max-w-6xl mx-auto px-4 pb-16
                 />
               </div>
 
-              {/* Button Sebaran Wilayah */}
-              <div className="absolute top-4 right-4 sm:top-6 sm:right-8 z-30">
-                <button className="bg-white text-blue-700 border-2 border-blue-600 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-semibold hover:bg-blue-50 transition-all shadow-md hover:shadow-lg">
-                  Sebaran Wilayah
-                </button>
-              </div>
-
               {/* Content */}
-              <div className="relative z-20 pt-16">
+              <div className="relative z-20">
+                  {/* Back Button */}
+                  <div className="mb-6">
+                    <button
+                      onClick={() => router.back()}
+                      className="
+                      flex items-center gap-2
+                      px-4 py-2
+                      bg-red-500 hover:bg-red-600
+                      text-white
+                      rounded-lg
+                      transition
+                      shadow-sm
+                    "
+                    >
+                      Kembali
+                    </button>
+                  </div>
                 <div className="flex items-center justify-center">
                   {/* Buttons Grid */}
                   <div className="w-full">
@@ -214,16 +224,16 @@ max-w-6xl mx-auto px-4 pb-16
                               )
                             }
                             className="
-group
-bg-white
-border border-gray-200
-hover:border-blue-300
-rounded-2xl
-p-5
-shadow-sm hover:shadow-xl
-transition-all duration-300 hover:-translate-y-1
-text-center
-"
+                            group
+                            bg-white
+                            border border-gray-200
+                            hover:border-blue-300
+                            rounded-2xl
+                            p-5
+                            shadow-sm hover:shadow-xl
+                            transition-all duration-300 hover:-translate-y-1
+                            text-center
+                            "
                           >
                             <p className="font-semibold text-blue-900 group-hover:text-blue-700">
                               {sub.namaSubProgram}

@@ -2,16 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Header from "@/components/Header";
-import {
-  Sparkles,
-  TrendingUp,
-  Plane,
-  GraduationCap,
-  Database,
-  MapPin,
-  Award,
-  Baby,
-} from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -38,17 +29,28 @@ interface APIResponse {
 const getProgramIcon = (nama: string) => {
   const key = nama.toLowerCase();
 
-  if (key.includes("cerdas")) return <GraduationCap />;
-  if (key.includes("sehat")) return <Baby />;
-  if (key.includes("sejahtera")) return <TrendingUp />;
-  if (key.includes("menyala")) return <Database />;
-  if (key.includes("lancar")) return <Plane />;
-  if (key.includes("makmur")) return <MapPin />;
-  if (key.includes("berkah")) return <Award />;
-  if (key.includes("harmoni")) return <Sparkles />;
-  if (key.includes("integritas")) return <Database />;
+  let src = "/icon/default.png";
 
-  return <Sparkles />;
+  if (key.includes("cerdas")) src = "/icon/BERANI CERDAS.png";
+  else if (key.includes("sehat")) src = "/icon/BERANI SEHAT.png";
+  else if (key.includes("berkah")) src = "/icon/BERANI BERKAH.png";
+  else if (key.includes("harmoni")) src = "/icon/BERANI HARMONI.png";
+  else if (key.includes("integritas")) src = "/icon/BERANI BERINTEGRITAS.png";
+  else if (key.includes("menyala")) src = "/icon/BERANI MENYALA.png";
+  else if (key.includes("lancar")) src = "/icon/BERANI LANCAR.png";
+  else if (key.includes("sejahtera")) src = "/icon/BERANI MURAH.png";
+  else if (key.includes("makmur")) src = "/icon/BERANI PANEN RAYA.png";
+  else if (key.includes("tangkap")) src = "/icon/BERANI TANGKAP BANYAK.png";
+
+  return (
+    <Image
+      src={src}
+      alt={nama}
+      width={40}
+      height={40}
+      className="object-contain"
+    />
+  );
 };
 
 export default function MonitoringGubernur() {
@@ -101,7 +103,7 @@ export default function MonitoringGubernur() {
     const checkScreen = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      
+
       // Auto-close menu when switching to desktop
       if (!mobile) {
         setMenuOpen(false);
@@ -161,7 +163,7 @@ export default function MonitoringGubernur() {
       <Header onLogout={handleLogout} />
 
       {/* TITLE */}
-      <section className="text-center py-8">
+      <section className="text-center py-6">
         <h1 className="text-5xl font-bold text-blue-900">SIMONEVA BERANI</h1>
         <p className="text-blue-800 mt-2">
           Sistem Informasi Monitoring dan Evaluasi Program Kerja
@@ -173,17 +175,17 @@ export default function MonitoringGubernur() {
 
       {/* MAIN SECTION */}
       <section
-        className="relative w-full"
+        className="relative w-full overflow-hidden"
         style={{ height: 600, backgroundImage: "url('/bg.png')" }}
       >
         {/* ===== MOBILE CAROUSEL (ATAS CARD) ===== */}
         {isMobile && (
-          <div className="w-full overflow-x-auto px-4 py-4 m-4">
+          <div className="w-full overflow-x-auto px-4 py-4">
             <div
               ref={carouselRef}
-              className="flex gap-6 w-max mx-auto pb-6
-              px-[35vw]
-              snap-x snap-mandatory scroll-smooth"
+              className="gap-6 inline-flex mx-auto pb-6
+              scroll-px-4
+              snap-x snap-mandatory snap-center scroll-smooth"
             >
               {programs.map((program, index) => {
                 const isActive = index === activeIndex;
@@ -192,12 +194,12 @@ export default function MonitoringGubernur() {
                   <button
                     key={program.id}
                     onClick={() => setActiveIndex(index)}
-                    className={`min-w-50 h-50 rounded-full
+                    className={`min-w-25 h-25 rounded-full
                     flex items-center justify-center shadow-lg
                     snap-center transition-all duration-300
-                    ${isActive ? "bg-blue-600 scale-110" : "bg-gray-500"}`}
+                    ${isActive ? "bg-white border-4 border-blue-600 scale-110" : "bg-white/50 border-2 border-blue-600 hover:border-4 hover:border-blue-600 transition"}`}
                   >
-                    <div className="text-white flex flex-col items-center gap-2 px-4 py-4">
+                    <div className="text-blue-600 flex flex-col items-center gap-2 px-4 py-4">
                       {program.icon}
                       <span className="text-base font-bold">{program.id}</span>
                     </div>
@@ -258,11 +260,11 @@ export default function MonitoringGubernur() {
                 onClick={() => handleClick(index)}
                 disabled={isAnimating}
                 className={`absolute w-28 h-28 rounded-full flex items-center
-                justify-center shadow-lg transition-all duration-500
+                justify-center shadow-lg transition-all duration-500 mt-6
                 ${
                   isActive
-                    ? "bg-blue-600 z-30"
-                    : "bg-gray-500 hover:bg-gray-600"
+                    ? "bg-white z-30 border-4 border-blue-600"
+                    : "bg-white/50 border-2 border-blue-600 hover:border-4 hover:border-blue-600"
                 }`}
                 style={{
                   left: `${x}%`,
@@ -270,7 +272,7 @@ export default function MonitoringGubernur() {
                   transform: `translate(-50%, -50%) scale(${scale})`,
                 }}
               >
-                <div className="text-white flex flex-col items-center gap-1">
+                <div className="text-blue-600 flex flex-col items-center gap-1">
                   {program.icon}
                   <span className="text-xs font-bold">{program.id}</span>
                 </div>

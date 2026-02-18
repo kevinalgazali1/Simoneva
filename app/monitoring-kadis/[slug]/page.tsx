@@ -69,7 +69,6 @@ export default function ProgramDetailPage() {
       .replace(/([a-z])([A-Z])/g, "$1 $2")
       .replace(/^./, (s) => s.toUpperCase());
 
-  // Format Rupiah
   // Format Rupiah - ubah return type menjadi string
   const formatRupiah = (value: string | number): string => {
     const number =
@@ -149,7 +148,7 @@ export default function ProgramDetailPage() {
         const token = getCookie("accessToken");
 
         const res = await fetch(
-          `http://76.13.195.68/api/kadis/jobdesk/${slug}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_API}/kadis/jobdesk/${slug}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -372,52 +371,55 @@ export default function ProgramDetailPage() {
             </div>
 
             {/* Table */}
-            <div className="rounded-xl shadow shadow-gray-300 p-4 overflow-x-auto border-2 border-blue-700">
+            <div className="rounded-xl shadow shadow-gray-300 p-4 border-2 border-blue-700">
               {loading && (
                 <div className="flex items-center gap-2 mb-3 text-[#245CCE]">
                   <div className="h-4 w-4 border-2 border-[#245CCE] border-t-transparent rounded-full animate-spin"></div>
                   <span className="text-sm font-semibold">Memuat data...</span>
                 </div>
               )}
-
-              <table className="w-full border-collapse">
-                <thead className="bg-blue-700 text-white">
-                  <tr className="text-left border-b-2">
-                    {columns.map((col) => (
-                      <th key={col} className="p-3 capitalize">
-                        {formatColumn(col)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-
-                <tbody className="text-black">
-                  {paginatedData.length > 0 ? (
-                    paginatedData.map((item, i) => (
-                      <tr
-                        key={item.id}
-                        className="hover:bg-blue-700 hover:text-white transition"
-                      >
-                        {columns.map((col) => (
-                          <td key={col} className="p-3">
-                            {formatCellValue(
-                              col,
-                              item[col as keyof ProgramData],
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={columns.length} className="text-center p-4">
-                        Data tidak ditemukan
-                      </td>
+              <div className="overflow-x-auto overflow-y-auto max-h-125">
+                <table className="w-full border-collapse">
+                  <thead className="bg-blue-700 text-white text-center sticky top-0 z-10">
+                    <tr className="border-b-2">
+                      {columns.map((col) => (
+                        <th key={col} className="p-3 capitalize">
+                          {formatColumn(col)}
+                        </th>
+                      ))}
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
 
+                  <tbody className="text-black text-center">
+                    {paginatedData.length > 0 ? (
+                      paginatedData.map((item, i) => (
+                        <tr
+                          key={item.id}
+                          className="hover:bg-blue-700 hover:text-white transition"
+                        >
+                          {columns.map((col) => (
+                            <td key={col} className="p-3">
+                              {formatCellValue(
+                                col,
+                                item[col as keyof ProgramData],
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={columns.length}
+                          className="text-center p-4"
+                        >
+                          Data tidak ditemukan
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
               {/* Pagination */}
               <div className="flex flex-wrap items-center gap-2 mt-4">
                 <button
@@ -428,7 +430,7 @@ export default function ProgramDetailPage() {
                 </button>
 
                 <span className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-sm font-semibold text-[#245CCE] shadow-md">
-                  Halaman {currentPage}
+                  Halaman {currentPage} /{totalPages || 1}
                 </span>
 
                 <button
