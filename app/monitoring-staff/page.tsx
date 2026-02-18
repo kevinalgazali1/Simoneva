@@ -175,7 +175,7 @@ export default function BerandaStaff() {
             filteredSubPrograms.map((item) => (
               <Link
                 key={item.id}
-                href={`/monitoring-staff/${item.slug}`}
+                href={`/monitoring-staff/${item.slug}?subProgramId=${item.id}`}
                 className="block"
               >
                 <div

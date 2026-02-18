@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import BeasiswaSelect from "@/components/BeasiswaSelect";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { FileSpreadsheet, Menu } from "lucide-react";
 
 interface Laporan {
@@ -29,13 +29,15 @@ interface Laporan {
   };
 }
 
-export default function BerandaStaff() {
+export default function DaftarLaporanStaff() {
   const [openModalTambah, setOpenModalTambah] = useState(false);
   const [laporan, setLaporan] = useState<Laporan[]>([]);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [subProgramId, setSubProgramId] = useState<number | null>(null);
   const params = useParams();
+  const searchParams = useSearchParams();
+  const subProgramIdParam = searchParams.get("subProgramId");
+  const subProgramId = subProgramIdParam ? Number(subProgramIdParam) : null;
   const [searchQuery, setSearchQuery] = useState("");
   const slug =
     typeof params.laporanSlug === "string"
@@ -77,11 +79,6 @@ export default function BerandaStaff() {
 
       if (json.status === "success") {
         setLaporan(json.data);
-
-        // 👉 ambil subProgramId dari data pertama
-        if (json.data.length > 0) {
-          setSubProgramId(json.data[0].subProgramId);
-        }
       }
     } catch (err) {
       console.error(err);
@@ -171,6 +168,7 @@ export default function BerandaStaff() {
       );
 
       const json = await res.json();
+      console.log(json);
 
       if (!res.ok) {
         throw new Error(json.message || "Upload gagal");
@@ -188,6 +186,7 @@ export default function BerandaStaff() {
       });
     } catch (err) {
       console.error(err);
+      console.log(err);
       toast.error("Gagal upload laporan", {
         id: "upload",
       });

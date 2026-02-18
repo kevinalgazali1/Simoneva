@@ -254,6 +254,7 @@ export default function DetailKotakMasukPage() {
 
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
+  const totalPages = Math.ceil(filteredData.length / pageSize);
 
   return (
     <div className="min-h-screen">
@@ -370,49 +371,49 @@ export default function DetailKotakMasukPage() {
         </div>
 
         {/* Table */}
-        <div className="rounded-xl shadow shadow-gray-300 p-4 overflow-x-auto border-2 border-blue-700">
+        <div className="rounded-xl shadow shadow-gray-300 p-4 border-2 border-blue-700">
           {loading && (
             <div className="flex items-center gap-2 mb-3 text-[#245CCE]">
               <div className="h-4 w-4 border-2 border-[#245CCE] border-t-transparent rounded-full animate-spin"></div>
               <span className="text-sm font-semibold">Memuat data...</span>
             </div>
           )}
-
-          <table className="w-full border-collapse">
-            <thead className="bg-blue-700 text-white">
-              <tr className="text-left border-b-2">
-                {columns.map((col) => (
-                  <th key={col} className="p-3 capitalize">
-                    {formatColumn(col)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody className="text-black">
-              {paginatedData.length > 0 ? (
-                paginatedData.map((item, i) => (
-                  <tr
-                    key={item.id}
-                    className="hover:bg-blue-700 hover:text-white transition"
-                  >
-                    {columns.map((col) => (
-                      <td key={col} className="p-3">
-                        {formatCellValue(col, item[col])}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={columns.length} className="text-center p-4">
-                    Data tidak ditemukan
-                  </td>
+          <div className="overflow-x-auto overflow-y-auto max-h-125">
+            <table className="w-full border-collapse">
+              <thead className="bg-blue-700 text-white sticky top-0 z-10">
+                <tr className="text-center border-b-2">
+                  {columns.map((col) => (
+                    <th key={col} className="p-3 capitalize">
+                      {formatColumn(col)}
+                    </th>
+                  ))}
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
 
+              <tbody className="text-black text-center">
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((item, i) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-blue-700 hover:text-white transition"
+                    >
+                      {columns.map((col) => (
+                        <td key={col} className="p-3">
+                          {formatCellValue(col, item[col])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={columns.length} className="text-center p-4">
+                      Data tidak ditemukan
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
           {/* Pagination */}
           <div className="flex flex-wrap items-center gap-2 mt-4">
             <button
@@ -423,7 +424,7 @@ export default function DetailKotakMasukPage() {
             </button>
 
             <span className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-sm font-semibold text-[#245CCE] shadow-md">
-              Halaman {currentPage}
+              Halaman {currentPage} / {totalPages}
             </span>
 
             <button

@@ -163,7 +163,7 @@ export default function MonitoringGubernur() {
       <Header onLogout={handleLogout} />
 
       {/* TITLE */}
-      <section className="text-center py-8">
+      <section className="text-center py-6">
         <h1 className="text-5xl font-bold text-blue-900">SIMONEVA BERANI</h1>
         <p className="text-blue-800 mt-2">
           Sistem Informasi Monitoring dan Evaluasi Program Kerja
@@ -175,16 +175,16 @@ export default function MonitoringGubernur() {
 
       {/* MAIN SECTION */}
       <section
-        className="relative w-full"
+        className="relative w-full overflow-hidden"
         style={{ height: 600, backgroundImage: "url('/bg.png')" }}
       >
         {/* ===== MOBILE CAROUSEL (ATAS CARD) ===== */}
         {isMobile && (
-          <div className="w-full overflow-x-auto px-4 py-4 m-4">
+          <div className="w-full overflow-x-auto px-4 py-4">
             <div
               ref={carouselRef}
-              className="flex gap-6 w-max mx-auto pb-6
-              scroll-px-6
+              className="gap-6 inline-flex mx-auto pb-6
+              scroll-px-4
               snap-x snap-mandatory snap-center scroll-smooth"
             >
               {programs.map((program, index) => {
@@ -260,7 +260,7 @@ export default function MonitoringGubernur() {
                 onClick={() => handleClick(index)}
                 disabled={isAnimating}
                 className={`absolute w-28 h-28 rounded-full flex items-center
-                justify-center shadow-lg transition-all duration-500
+                justify-center shadow-lg transition-all duration-500 mt-6
                 ${
                   isActive
                     ? "bg-white z-30 border-4 border-blue-600"
