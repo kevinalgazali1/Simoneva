@@ -15,6 +15,7 @@ interface ProgramData {
   noRegistrasi: string;
   alamat: string;
   kabupaten: string;
+  kabupatenKota: string;
   institusiTujuan: string;
   nominal: string;
   kontakPenerima: string;
@@ -30,6 +31,16 @@ interface ProgramResponse {
   totalRealisasi: number;
   data: ProgramData[];
 }
+
+const normalizeWilayah = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/^kota\s+/i, "")
+    .replace(/^kabupaten\s+/i, "")
+    .replace(/[^a-z0-9]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
 
 export default function ProgramDetailPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -85,6 +96,11 @@ export default function ProgramDetailPage() {
     }).format(number);
   };
 
+  const isCurrencyColumn = (col: string) =>
+    ["nominal", "realisasi"].some((keyword) =>
+      col.toLowerCase().includes(keyword),
+    );
+
   // Format Tanggal - sudah benar, return string
   const formatTanggal = (value: string): string => {
     if (!value) return "-";
@@ -127,14 +143,13 @@ export default function ProgramDetailPage() {
     columnName: string,
     value: string | number | null | undefined,
   ): string => {
-    if (!value && value !== 0) return "-"; // Handle 0 value
+    if (!value && value !== 0) return "-";
 
-    // Format nominal/uang
-    if (columnName.toLowerCase().includes("nominal")) {
+    // Gunakan isCurrencyColumn
+    if (isCurrencyColumn(columnName)) {
       return formatRupiah(value);
     }
 
-    // Format tanggal
     if (isDateColumn(columnName)) {
       return formatTanggal(String(value));
     }
@@ -191,7 +206,8 @@ export default function ProgramDetailPage() {
   // Filter data berdasarkan kabupaten
   const filteredData = programData.filter((item) =>
     kabupaten
-      ? item.kabupaten?.toLowerCase().trim() === kabupaten.toLowerCase().trim()
+      ? normalizeWilayah(item.kabupatenKota ?? item.kabupaten ?? "") ===
+        normalizeWilayah(kabupaten)
       : true,
   );
 

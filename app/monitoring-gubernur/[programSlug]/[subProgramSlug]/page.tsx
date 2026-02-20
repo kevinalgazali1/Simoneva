@@ -3,9 +3,8 @@
 
 import Header from "@/components/Header";
 import KabupatenSelect from "@/components/KabupatenSelect";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { UsersIcon } from "@heroicons/react/24/solid";
 
 interface BeasiswaData {
   id: number;
@@ -41,22 +40,62 @@ interface SubProgram {
   serapanAnggaran: string;
 }
 
-interface MonitoringStats {
+interface RawSubProgram {
+  id: number;
+  "Nama Sub Program": string;
+  "Target Fisik": number;
+  "Realisasi Fisik": number;
+  "Pending Fisik": number;
+  "Capaian Fisik": string;
+  "Pagu Anggaran": string;
+  "Realisasi Anggaran": string;
+  "Sisa Anggaran": string;
+  "Serapan Anggaran": string;
+}
+
+interface RawProgram {
+  id: number;
+  "Nama Program": string;
+  "Daftar Sub Program": RawSubProgram[];
+}
+
+interface MonitoringStatsResponse {
   status: string;
   msg: string;
-  data: Array<{
-    id: number;
-    namaProgram: string;
-    subPrograms: SubProgram[];
-  }>;
+  data: RawProgram[];
 }
+
+const normalizeWilayah = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/^kota\s+/i, "")
+    .replace(/^kabupaten\s+/i, "")
+    .replace(/[^a-z0-9]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
+const toSlug = (text: string) => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
+
+// Slug dari sub program beasiswa utama
+const BEASISWA_UTAMA_SLUG =
+  "pemberian-beasiswa-dan-bantuan-biaya-pendidikan-bagi-mahasiswa-miskin-danatau-berprestasi";
 
 export default function SubProgramPage() {
   const params = useParams();
   const router = useRouter();
   const programSlug = params?.programSlug?.toString();
   const subProgramSlug = params?.subProgramSlug?.toString();
+
   const [kabupaten, setKabupaten] = useState("");
+  const [jalur, setJalur] = useState("");
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -71,15 +110,23 @@ export default function SubProgramPage() {
     null,
   );
 
-  // Helper function to convert string to slug
-  const toSlug = (text: string) => {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "") // Remove special characters
-      .replace(/\s+/g, "-") // Replace spaces with hyphens
-      .replace(/-+/g, "-"); // Replace multiple hyphens with single hyphen
-  };
+  const isBeasiswaUtama =
+    subProgramSlug === BEASISWA_UTAMA_SLUG ||
+    toSlug(programInfo.subProgram) === BEASISWA_UTAMA_SLUG;
+
+  const jalurOptions = useMemo(() => {
+    if (!isBeasiswaUtama || tableData.length === 0) return [];
+
+    const unique = Array.from(
+      new Set(
+        tableData
+          .map((item) => item["Jalur Pendaftaran"])
+          .filter((v): v is string => typeof v === "string" && v.trim() !== ""),
+      ),
+    ).sort();
+
+    return unique;
+  }, [tableData, isBeasiswaUtama]);
 
   useEffect(() => {
     if (!programSlug || !subProgramSlug) return;
@@ -91,17 +138,14 @@ export default function SubProgramPage() {
           .find((row) => row.startsWith("accessToken="))
           ?.split("=")[1];
 
-        // Fetch detail data
+        // Fetch data tabel
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API}/gubernur/program/${programSlug}/${subProgramSlug}`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
             credentials: "include",
           },
         );
-
         const json: APIResponse = await res.json();
 
         if (json.status === "success") {
@@ -117,64 +161,34 @@ export default function SubProgramPage() {
         const statsRes = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API}/gubernur/monitoring/stats`,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
             credentials: "include",
           },
         );
-
-        const statsJson: MonitoringStats = await statsRes.json();
+        const statsJson: MonitoringStatsResponse = await statsRes.json();
 
         if (statsJson.status === "success") {
-          // Find the current sub program from stats using better matching
-          let foundSubProgram: SubProgram | null = null;
+          const normalizedStats: SubProgram[] = statsJson.data.flatMap(
+            (program) =>
+              program["Daftar Sub Program"].map((sp) => ({
+                id: sp.id,
+                namaSubProgram: sp["Nama Sub Program"],
+                targetFisik: sp["Target Fisik"],
+                realisasiFisik: sp["Realisasi Fisik"],
+                pendingFisik: sp["Pending Fisik"],
+                capaianFisik: sp["Capaian Fisik"],
+                paguAnggaran: sp["Pagu Anggaran"],
+                realisasiAnggaran: sp["Realisasi Anggaran"],
+                sisaAnggaran: sp["Sisa Anggaran"],
+                serapanAnggaran: sp["Serapan Anggaran"],
+              })),
+          );
 
-          // First, try to match by sub program name from the detail API
-          if (json.subProgram) {
-            for (const program of statsJson.data) {
-              const subProgram = program.subPrograms.find(
-                (sp) => sp.namaSubProgram === json.subProgram,
-              );
+          const found = normalizedStats.find(
+            (sp) => toSlug(sp.namaSubProgram) === subProgramSlug?.toLowerCase(),
+          );
 
-              if (subProgram) {
-                foundSubProgram = subProgram;
-                console.log("Found by exact name match:", subProgram);
-                break;
-              }
-            }
-          }
-
-          // If not found, try slug matching
-          if (!foundSubProgram) {
-            for (const program of statsJson.data) {
-              const subProgram = program.subPrograms.find(
-                (sp) =>
-                  toSlug(sp.namaSubProgram) === subProgramSlug?.toLowerCase(),
-              );
-
-              if (subProgram) {
-                foundSubProgram = subProgram;
-                console.log("Found by slug match:", subProgram);
-                break;
-              }
-            }
-          }
-
-          // Debug: Log if not found
-          if (!foundSubProgram) {
-            console.log("Sub program not found. Looking for:", subProgramSlug);
-            console.log("Available sub programs:");
-            statsJson.data.forEach((prog) => {
-              prog.subPrograms.forEach((sp) => {
-                console.log(
-                  `- ${sp.namaSubProgram} (slug: ${toSlug(sp.namaSubProgram)})`,
-                );
-              });
-            });
-          }
-
-          setMonitoringStats(foundSubProgram);
+          setMonitoringStats(found ?? null);
         }
 
         setLoading(false);
@@ -187,21 +201,79 @@ export default function SubProgramPage() {
     fetchData();
   }, [programSlug, subProgramSlug]);
 
-  // Filter data berdasarkan kabupaten
-  const filteredData = tableData.filter((item) =>
-    kabupaten
-      ? (item.kabupaten ?? "").toLowerCase().trim() ===
-        kabupaten.toLowerCase().trim()
-      : true,
-  );
+  // Reset filter jalur jika bukan sub program beasiswa utama
+  useEffect(() => {
+    if (!isBeasiswaUtama) setJalur("");
+  }, [isBeasiswaUtama]);
 
-  // Format nominal ke Rupiah
-  const formatRupiah = (nominal: string) => {
+  // Filter data berdasarkan kabupaten dan jalur pendaftaran
+  const filteredData = tableData.filter((item) => {
+    const matchKabupaten = kabupaten
+      ? normalizeWilayah(
+          item["Kabupaten / Kota"] ??
+            item["kabupatenKota"] ??
+            item["kabupaten"] ??
+            "",
+        ) === normalizeWilayah(kabupaten)
+      : true;
+
+    // Gunakan exact match untuk jalur karena value-nya sudah tepat dari data
+    const matchJalur =
+      isBeasiswaUtama && jalur
+        ? (item["Jalur Pendaftaran"] ?? "") === jalur
+        : true;
+
+    return matchKabupaten && matchJalur;
+  });
+
+  const formatRupiah = (value: string | number) => {
+    let number: number;
+
+    if (typeof value === "string") {
+      const cleaned = value
+        .replace(/rp/gi, "")
+        .replace(/\./g, "")
+        .replace(",", ".")
+        .replace(/[^\d.-]/g, "")
+        .trim();
+
+      number = Number(cleaned);
+    } else {
+      number = value;
+    }
+
+    if (isNaN(number)) return String(value);
+
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
-    }).format(parseInt(nominal));
+    }).format(number);
+  };
+
+  const isCurrencyColumn = (col: string) =>
+    ["nominal", "realisasi"].some((keyword) =>
+      col.toLowerCase().includes(keyword),
+    );
+
+  const isDateColumn = (col: string) =>
+    ["tanggal", "tgl", "date"].some((keyword) =>
+      col.toLowerCase().includes(keyword),
+    );
+
+  const formatCellValue = (col: string, value: any) => {
+    if (!value && value !== 0) return "-";
+    if (isCurrencyColumn(col)) return formatRupiah(String(value));
+    if (isDateColumn(col)) {
+      const date = new Date(value);
+      if (isNaN(date.getTime())) return value;
+      return date.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+    }
+    return value;
   };
 
   const tableColumns =
@@ -219,13 +291,9 @@ export default function SubProgramPage() {
         method: "POST",
         credentials: "include",
       });
-
-      document.cookie = "accessToken=; path=/; max-age=0";
-      document.cookie = "refreshToken=; path=/; max-age=0";
-
-      router.push("/");
     } catch (error) {
       console.error("Logout error:", error);
+    } finally {
       document.cookie = "accessToken=; path=/; max-age=0";
       document.cookie = "refreshToken=; path=/; max-age=0";
       router.push("/");
@@ -269,7 +337,6 @@ export default function SubProgramPage() {
       {monitoringStats && (
         <section className="max-w-6xl mx-auto px-4 md:px-6 pb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Target Fisik */}
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
               <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
                 Target Fisik
@@ -279,20 +346,19 @@ export default function SubProgramPage() {
               </p>
             </div>
 
-            {/* Realisasi Fisik */}
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
               <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
                 Realisasi Fisik
               </h3>
               <p className="text-2xl md:text-3xl font-bold">
-                {monitoringStats.realisasiFisik.toLocaleString("id-ID")}
+                {monitoringStats.capaianFisik}
               </p>
               <p className="text-xs md:text-sm mt-1 opacity-90">
-                Capaian: {monitoringStats.capaianFisik}
+                Capaian:{" "}
+                {monitoringStats.realisasiFisik.toLocaleString("id-ID")}
               </p>
             </div>
 
-            {/* Pagu Anggaran */}
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
               <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
                 Pagu Anggaran
@@ -302,7 +368,6 @@ export default function SubProgramPage() {
               </p>
             </div>
 
-            {/* Serapan Anggaran */}
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-4 md:p-6 text-white">
               <h3 className="text-xs md:text-sm font-semibold opacity-90 mb-2">
                 Serapan Anggaran
@@ -316,7 +381,6 @@ export default function SubProgramPage() {
             </div>
           </div>
 
-          {/* Detail Stats */}
           <div className="mt-4 bg-white rounded-xl shadow-lg p-4 md:p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="border-l-4 border-yellow-500 pl-4">
@@ -370,9 +434,10 @@ export default function SubProgramPage() {
 
               {/* ================= Filtering ================= */}
               <div className="relative z-20">
-                <div className="flex flex-col md:flex-row items-stretch md:items-center px-4 justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <span className="border-2 border-blue-600 bg-white rounded-lg px-2 py-1 text-xs md:text-sm font-semibold text-blue-700 shadow-md whitespace-nowrap">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4">
+                  {/* LEFT - Page Size */}
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-sm font-semibold text-blue-700 shadow-md whitespace-nowrap">
                       Tampilkan:
                     </span>
 
@@ -382,7 +447,7 @@ export default function SubProgramPage() {
                         setPageSize(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-xs md:text-sm font-semibold text-blue-700 shadow-md"
+                      className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-sm font-semibold text-blue-700 shadow-md"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -390,15 +455,42 @@ export default function SubProgramPage() {
                       <option value={100}>100</option>
                     </select>
                   </div>
-                  {/* filter kabupaten */}
-                  <div className="w-full md:w-auto">
-                    <KabupatenSelect
-                      value={kabupaten}
-                      onChange={(value) => {
-                        setKabupaten(value);
-                        setCurrentPage(1);
-                      }}
-                    />
+
+                  {/* RIGHT - Filters */}
+                  <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                    {/* Kabupaten */}
+                    <div className="w-full sm:w-64">
+                      <KabupatenSelect
+                        value={kabupaten}
+                        onChange={(value) => {
+                          setKabupaten(value);
+                          setCurrentPage(1);
+                        }}
+                      />
+                    </div>
+
+                    {/* Jalur */}
+                    {isBeasiswaUtama && jalurOptions.length > 0 && (
+                      <div className="w-full sm:w-65">
+                        <select
+                          value={jalur}
+                          onChange={(e) => {
+                            setJalur(e.target.value);
+                            setCurrentPage(1);
+                          }}
+                          className="w-full rounded-xl border-2 border-blue-600
+                          bg-white px-4 py-2.5 text-sm font-semibold text-[#245CCE]
+                          shadow-md outline-none focus:ring-2 focus:ring-blue-300"
+                        >
+                          <option value="">Semua Jalur Pendaftaran</option>
+                          {jalurOptions.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -407,13 +499,10 @@ export default function SubProgramPage() {
               <div className="relative z-10 mt-5">
                 {/* ===== TOP TOTAL BAR ===== */}
                 <div className="bg-blue-800 text-white px-4 md:px-6 py-4 md:py-5 flex items-center justify-center gap-3 md:gap-4">
-                  <div className="bg-white/10 p-2 md:p-3 rounded-lg">
-                    <UsersIcon className="h-5 w-5 md:h-7 md:w-7 text-white" />
-                  </div>
                   <h2 className="text-base md:text-lg lg:text-xl font-semibold tracking-wide text-center">
                     TOTAL :{" "}
                     <span className="font-bold">
-                      {loading ? "..." : `${programInfo.totalData} BEASISWA`}
+                      {loading ? "..." : `${programInfo.totalData}`}
                     </span>
                   </h2>
                 </div>
@@ -429,8 +518,8 @@ export default function SubProgramPage() {
                   ) : filteredData.length === 0 ? (
                     <div className="text-center py-12 text-gray-600">
                       <p className="text-base md:text-lg font-semibold">
-                        {kabupaten
-                          ? "Tidak ada data untuk kabupaten yang dipilih"
+                        {kabupaten || jalur
+                          ? "Tidak ada data untuk filter yang dipilih"
                           : "Tidak ada data tersedia"}
                       </p>
                     </div>
@@ -455,20 +544,13 @@ export default function SubProgramPage() {
                             {tableColumns.map((col) => (
                               <td
                                 key={col}
-                                className="px-3 md:px-6 py-3 md:py-4 whitespace-nowrap"
+                                className={`px-3 md:px-6 py-3 md:py-4 whitespace-nowrap ${
+                                  isCurrencyColumn(col)
+                                    ? "text-right font-semibold"
+                                    : ""
+                                }`}
                               >
-                                {col.toLowerCase() === "nominal"
-                                  ? formatRupiah(row[col])
-                                  : col.toLowerCase().includes("tanggal")
-                                    ? new Date(row[col]).toLocaleDateString(
-                                        "id-ID",
-                                        {
-                                          day: "2-digit",
-                                          month: "long",
-                                          year: "numeric",
-                                        },
-                                      )
-                                    : (row[col] ?? "-")}
+                                {formatCellValue(col, row[col])}
                               </td>
                             ))}
                           </tr>
@@ -477,6 +559,8 @@ export default function SubProgramPage() {
                     </table>
                   )}
                 </div>
+
+                {/* Pagination */}
                 <div className="flex flex-row items-center justify-center gap-2 my-4 px-4">
                   <button
                     onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}

@@ -31,6 +31,7 @@ interface LaporanItem {
   noRegistrasi: string;
   alamat: string;
   kabupatenKota: string;
+  kabupaten: string;
   institusiTujuan: string;
   nominal: string;
   kontakPenerima: string;
@@ -40,6 +41,16 @@ interface LaporanResponse {
   header: LaporanHeader;
   items: LaporanItem[];
 }
+
+const normalizeWilayah = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/^kota\s+/i, "")
+    .replace(/^kabupaten\s+/i, "")
+    .replace(/[^a-z0-9]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
 
 export default function LaporanPage() {
   const [laporan, setLaporan] = useState<LaporanResponse | null>(null);
@@ -91,6 +102,7 @@ export default function LaporanPage() {
         );
 
         const json = await res.json();
+        console.log("DATA LAPORAN:", json);
         setLaporan(json.data);
       } catch (err) {
         console.error(err);
@@ -135,8 +147,8 @@ export default function LaporanPage() {
 
   const filteredData = items.filter((item) =>
     kabupaten
-      ? item.kabupatenKota?.toLowerCase().trim() ===
-        kabupaten.toLowerCase().trim()
+      ? normalizeWilayah(item.kabupatenKota ?? item.kabupaten ?? "") ===
+        normalizeWilayah(kabupaten)
       : true,
   );
 
@@ -200,6 +212,11 @@ export default function LaporanPage() {
       minimumFractionDigits: 0,
     }).format(number);
   };
+
+  const isCurrencyColumn = (col: string) =>
+    ["nominal", "realisasi"].some((keyword) =>
+      col.toLowerCase().includes(keyword),
+    );
 
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedData = filteredData.slice(startIndex, startIndex + pageSize);
@@ -307,7 +324,7 @@ export default function LaporanPage() {
                   >
                     {columns.map((col) => (
                       <td key={col} className="p-2 sm:p-3 whitespace-nowrap">
-                        {col === "nominal"
+                        {isCurrencyColumn(col)
                           ? formatRupiah(
                               item[col as keyof LaporanItem] as string,
                             )

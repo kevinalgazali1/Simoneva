@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
-import BeasiswaSelect from "@/components/BeasiswaSelect";
 import Link from "next/link";
-import toast from "react-hot-toast";
 import {
   Settings,
   FileSpreadsheet,

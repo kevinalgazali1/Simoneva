@@ -28,7 +28,7 @@ export default function SebaranWilayahPage() {
       >
         MONITORING
       </h1>
-      <div className="p-6">
+      <div className="pt-4 sm:p-6">
       <SimonevaMapClient />
       </div>
     </div>

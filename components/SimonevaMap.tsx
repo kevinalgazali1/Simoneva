@@ -18,6 +18,8 @@ interface MonitoringWilayah {
   namaKabupaten: string;
   totalPenerima: number;
   totalRealisasi: string;
+  persentaseTotal: number;
+  persentaseTotalString: string;
   detailProgram: DetailProgram[];
 }
 
@@ -265,6 +267,8 @@ export default function SimonevaMap() {
                   namaDisplay: namaGeo,
                   totalPenerima: 0,
                   totalRealisasi: "Rp 0",
+                  persentaseTotal: 0,
+                  persentaseTotalString: "0%",
                   detailProgram: NAMA_PROG.map((namaProgram) => ({
                     namaProgram,
                     totalPenerima: 0,
@@ -448,10 +452,7 @@ export default function SimonevaMap() {
             </p>
           ) : (
             dataWilayah.map((w, idx) => {
-              const avgPersen =
-                w.detailProgram.reduce((a, b) => a + b.persentase, 0) /
-                w.detailProgram.length;
-              const avgDisplay = (avgPersen * 100).toFixed(3);
+              const avgDisplay = w.persentaseTotal?.toFixed(3) ?? "0.000";
               return (
                 <div
                   key={idx}
@@ -473,8 +474,8 @@ export default function SimonevaMap() {
                     <div
                       className="h-full rounded-full bg-[#153893] transition-all"
                       style={{
-                        width: `${Math.min(avgPersen * 10000, 100)}%`,
-                        minWidth: avgPersen > 0 ? "4px" : "0",
+                        width: `${Math.min(w.persentaseTotal, 100)}%`,
+                        minWidth: w.persentaseTotal > 0 ? "4px" : "0",
                       }}
                     />
                   </div>

@@ -30,18 +30,17 @@ export default function Header({ onLogout }: HeaderProps) {
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         {/* LOGO */}
         <Link href="/monitoring-gubernur">
-        <div className="flex items-center gap-3 text-white">
-          <Image src="/logo-sulteng.png" alt="Logo" width={50} height={50} />
-          <div>
-            <div className="text-xs">PEMERINTAH PROVINSI</div>
-            <div className="text-sm font-bold">SULAWESI TENGAH</div>
+          <div className="flex items-center gap-3 text-white">
+            <Image src="/logo-sulteng.png" alt="Logo" width={50} height={50} />
+            <div>
+              <div className="text-xs">PEMERINTAH PROVINSI</div>
+              <div className="text-sm font-bold">SULAWESI TENGAH</div>
+            </div>
           </div>
-        </div>
         </Link>
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex gap-2">
-
           <Link href="/monitoring-gubernur">
             <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
               Beranda
@@ -59,7 +58,7 @@ export default function Header({ onLogout }: HeaderProps) {
               Ranking OPD
             </button>
           </Link>
-          
+
           <button
             onClick={onLogout}
             className="bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-sm font-semibold"
@@ -78,22 +77,39 @@ export default function Header({ onLogout }: HeaderProps) {
       </div>
 
       {/* MOBILE DROPDOWN */}
-      {menuOpen && isMobile && (
-        <div className="md:hidden bg-blue-800 px-6 py-4 space-y-2">
-          <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-            Monitoring
+      <div
+        className={`
+        md:hidden overflow-hidden transition-all duration-700 ease-in-out
+        ${
+          menuOpen && isMobile
+            ? "max-h-96 opacity-100 translate-y-0 py-4"
+            : "max-h-0 opacity-0 -translate-y-2"
+        }
+        bg-blue-800 px-6 space-y-2
+      `}
+      >
+        <Link href="/monitoring-gubernur">
+          <button className="block w-full mb-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+            Beranda
           </button>
-          <button className="block w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+        </Link>
+        <Link href="/monitoring-gubernur/sebaran-wilayah">
+          <button className="block w-full mb-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+            Sebaran Wilayah
+          </button>
+        </Link>
+        <Link href="/monitoring-gubernur/ranking-opd">
+          <button className="block w-full mb-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
             Ranking OPD
           </button>
-          <button
-            onClick={onLogout}
-            className="block w-full bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-sm font-semibold"
-          >
-            Logout
-          </button>
-        </div>
-      )}
+        </Link>
+        <button
+          onClick={onLogout}
+          className="block w-full bg-red-700 hover:bg-red-800 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+        >
+          Logout
+        </button>
+      </div>
     </header>
   );
 }

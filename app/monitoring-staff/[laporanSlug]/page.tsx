@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Sidebar from "@/components/Sidebar";
-import BeasiswaSelect from "@/components/BeasiswaSelect";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useParams, useSearchParams } from "next/navigation";
@@ -139,14 +138,14 @@ export default function DaftarLaporanStaff() {
       return;
     }
 
+    if (uploading) return; // cegah double submit
+
     try {
       setUploading(true);
-      toast.loading("Uploading...", { id: "upload" });
 
       const token = getCookie("accessToken");
 
       const formData = new FormData();
-
       formData.append("subProgramId", String(subProgramId));
       formData.append("namaLaporan", formUpload.namaLaporan);
 
@@ -155,6 +154,8 @@ export default function DaftarLaporanStaff() {
       }
 
       formData.append("file", formUpload.file);
+
+      const loadingToast = toast.loading("Sedang mengupload laporan...");
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API}/staff/upload`,
@@ -168,13 +169,14 @@ export default function DaftarLaporanStaff() {
       );
 
       const json = await res.json();
-      console.log(json);
 
       if (!res.ok) {
         throw new Error(json.message || "Upload gagal");
       }
 
-      toast.success("Laporan berhasil diupload", { id: "upload" });
+      toast.success("Laporan berhasil diupload", {
+        id: loadingToast,
+      });
 
       await fetchData();
 
@@ -186,10 +188,7 @@ export default function DaftarLaporanStaff() {
       });
     } catch (err) {
       console.error(err);
-      console.log(err);
-      toast.error("Gagal upload laporan", {
-        id: "upload",
-      });
+      toast.error("Gagal upload laporan");
     } finally {
       setUploading(false);
     }
@@ -243,7 +242,13 @@ export default function DaftarLaporanStaff() {
               <span className="text-sm font-semibold">Memuat data...</span>
             </div>
           ) : filteredLaporan.length === 0 ? (
-            <p>Tidak ada laporan</p>
+            <div className="flex flex-col items-center justify-center py-16 text-center text-[#245CCE]">
+              <FileSpreadsheet size={48} className="mb-4" />
+              <h3 className="text-lg font-bold mb-1">Belum Ada Laporan</h3>
+              <p className="text-sm font-medium opacity-70">
+                Silakan tambahkan laporan terlebih dahulu.
+              </p>
+            </div>
           ) : (
             filteredLaporan.map((item) => (
               <Link
@@ -304,22 +309,6 @@ export default function DaftarLaporanStaff() {
                 />
               </div>
 
-              {/* Jalur Beasiswa */}
-              {subProgramId === 4 && (
-                <div>
-                  <label className="block text-sm font-semibold mb-2 text-[#245CCE]">
-                    Jalur Beasiswa
-                  </label>
-
-                  <BeasiswaSelect
-                    value={formUpload.jalur}
-                    onChange={(value) =>
-                      setFormUpload((prev) => ({ ...prev, jalur: value }))
-                    }
-                  />
-                </div>
-              )}
-
               {/* Upload Excel */}
               <div>
                 <label className="block text-sm font-semibold mb-2 text-[#245CCE]">
@@ -354,11 +343,18 @@ export default function DaftarLaporanStaff() {
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="flex-1 px-4 py-2.5 rounded-xl
-                       bg-[#245CCE] text-white hover:bg-blue-800
-                       transition font-medium"
+                  className={`flex-1 px-4 py-2.5 rounded-xl
+                  transition font-medium flex items-center justify-center gap-2
+                  ${
+                    uploading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#245CCE] hover:bg-blue-800 text-white"
+                  }`}
                 >
-                  Simpan
+                  {uploading && (
+                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  )}
+                  {uploading ? "Mengupload..." : "Simpan"}
                 </button>
               </div>
             </form>

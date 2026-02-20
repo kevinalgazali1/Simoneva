@@ -40,6 +40,16 @@ interface LaporanResponse {
   };
 }
 
+const normalizeWilayah = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/^kota\s+/i, "")
+    .replace(/^kabupaten\s+/i, "")
+    .replace(/[^a-z0-9]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 export default function DetailKotakMasukPage() {
   const [laporan, setLaporan] = useState<LaporanResponse["data"] | null>(null);
   const [pageSize, setPageSize] = useState(10);
@@ -146,6 +156,11 @@ export default function DetailKotakMasukPage() {
     }).format(number);
   };
 
+  const isCurrencyColumn = (col: string) =>
+    ["nominal", "realisasi"].some((keyword) =>
+      col.toLowerCase().includes(keyword),
+    );
+
   const formatTanggal = (value: string): string => {
     if (!value || value === "-") return "-";
 
@@ -185,7 +200,8 @@ export default function DetailKotakMasukPage() {
   ): string => {
     if (!value && value !== 0) return "-";
 
-    if (columnName.toLowerCase().includes("nominal")) {
+    // Gunakan isCurrencyColumn
+    if (isCurrencyColumn(columnName)) {
       return formatRupiah(value);
     }
 
@@ -202,9 +218,8 @@ export default function DetailKotakMasukPage() {
 
   const filteredData = items.filter((item) =>
     kabupaten
-      ? item.kabupatenKota &&
-        String(item.kabupatenKota).toLowerCase().trim() ===
-          kabupaten.toLowerCase().trim()
+      ? normalizeWilayah(String(item.kabupatenKota ?? item.kabupaten ?? "")) ===
+        normalizeWilayah(kabupaten)
       : true,
   );
 

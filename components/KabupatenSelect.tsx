@@ -26,7 +26,7 @@ export default function KabupatenSelect({ value, onChange }: Props) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full sm:w-80 mb-4 rounded-xl border-2 border-blue-600
+      className="w-full sm:w-65 mb-4 rounded-xl border-2 border-blue-600
       bg-white px-4 py-2.5 text-sm font-semibold text-[#245CCE]
       shadow-md outline-none focus:ring-2 focus:ring-blue-300"
     >
