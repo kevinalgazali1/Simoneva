@@ -163,14 +163,72 @@ export default function MonitoringGubernur() {
       <Header onLogout={handleLogout} />
 
       {/* TITLE */}
-      <section className="text-center py-6">
-        <h1 className="text-5xl font-bold text-blue-900">SIMONEVA BERANI</h1>
-        <p className="text-blue-800 mt-2">
-          Sistem Informasi Monitoring dan Evaluasi Program Kerja
-        </p>
-        <p className="text-blue-700">
-          <strong>BAPPEDA</strong> – Provinsi Sulawesi Tengah
-        </p>
+      <section className="bg-white border-b border-gray-200">
+        {/* Logo + Judul */}
+        <div className="flex items-center justify-between py-6">
+          <Image
+            src="/Motif_Sulteng_1.png"
+            alt="Ornamen Sulteng 2"
+            width={400}
+            height={75}
+            className="object-contain hidden md:block"
+          />
+          <div className="text-blue-900">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-center">
+              <span className="text-blue-900">SIMON</span>
+              <span className="text-green-600">EVA</span>{" "}
+              <span className="text-green-600">BER</span>
+              <span className="text-red-500">ANI</span>
+            </h1>
+            {/* Subjudul */}
+            <p className="text-center text-xs font-semibold md:text-sm tracking-widest uppercase pb-2">
+              Sistem Informasi Monitoring dan Evaluasi Program Kerja
+            </p>
+          </div>
+          <Image
+            src="/Motif_Sulteng_1.png"
+            alt="Ornamen Sulteng 2"
+            width={400}
+            height={75}
+            className="object-contain hidden md:block"
+          />
+        </div>
+      </section>
+
+      {/* ================= BAPPEDA BANNER ================= */}
+      <section className="bg-gray-200 border-b border-gray-200">
+        <div className="flex items-center justify-between py-6">
+          <Image
+            src="/Motif_Sulteng_2.png"
+            alt="Ornamen Sulteng bawah"
+            width={300}
+            height={40}
+            className="object-contain hidden md:block"
+          />
+          <div className="text-center">
+            <p className="text-blue-900 font-bold md:text-2xl tracking-wide">
+              BAPPEDA
+            </p>
+            <p className="text-blue-900 text-xs md:text-sm uppercase font-semibold tracking-widest">
+              Badan Perencanaan Pembangunan Daerah Provinsi Sulawesi Tengah
+            </p>
+          </div>
+
+          <Image
+            src="/Motif_Sulteng_2.png"
+            alt="Ornamen Sulteng bawah"
+            width={300}
+            height={40}
+            className="object-contain hidden md:block"
+          />
+        </div>
+      </section>
+
+      {/* ================= PROGRAM BERANI LABEL ================= */}
+      <section className="flex justify-center py-4">
+        <span className="bg-blue-700 text-white text-sm font-bold px-6 py-2 rounded-full tracking-widest uppercase shadow">
+          Program BERANI
+        </span>
       </section>
 
       {/* MAIN SECTION */}

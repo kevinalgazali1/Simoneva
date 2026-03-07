@@ -121,49 +121,60 @@ export default function ProgramKerjaPage() {
           backgroundImage: "url('/bg.png')",
         }}
       >
-        <div
-          className="
-          max-w-6xl mx-auto px-4 pb-16
-          "
-        >
+        <div className="max-w-6xl mx-auto px-4 pb-16">
           <div
             className="
-              relative
-              bg-white/95 backdrop-blur-lg
-              rounded-3xl
-              shadow-2xl
-              border border-gray-100
-              p-6 sm:p-10
-              "
+        relative
+        bg-white/95 backdrop-blur-lg
+        rounded-3xl
+        shadow-2xl
+        border border-gray-100
+        p-6 sm:p-10
+      "
           >
-            {/* Badge MONITORING */}
-            <div className="absolute -top-6 sm:-top-2 left-1/3 sm:left-0 -translate-x-1/2 sm:translate-x-0 z-30">
-              <div className="mb-6 text-center">
-                <span
-                  className="
-                  inline-block
-                  sm:px-6 sm:py-2
-                  px-6 py-2
-                  rounded-xl
-                  text-sm sm:text-base md:text-lg font-semibold
-                  text-blue-900
-                  bg-blue-50
-                  border border-blue-100 shadow-sm
-                "
-                >
-                  Monitoring Program {programTitle}
-                </span>
-              </div>
+            {/* Header row: Badge + Kembali Button */}
+            <div className="flex items-center justify-between mb-6 gap-4">
+              <span
+                className="
+            inline-block
+            px-5 py-2
+            rounded-xl
+            text-sm sm:text-base font-semibold
+            text-blue-900
+            bg-blue-50
+            border border-blue-100 shadow-sm
+          "
+              >
+                Monitoring Program {programTitle}
+              </span>
+
+              <button
+                onClick={() => router.back()}
+                className="
+            flex items-center gap-2
+            px-4 py-2
+            bg-blue-900 hover:bg-blue-800
+            text-white
+            rounded-lg
+            transition
+            shadow-sm
+            text-sm font-medium
+          "
+              >
+                Kembali
+              </button>
             </div>
 
             <div
-              className="relative rounded-3xl 
-              p-6 sm:p-12 
-              shadow-xl sm:shadow-2xl 
-              overflow-hidden 
-              bg-white/95 backdrop-blur-md"
+              className="
+          relative rounded-3xl
+          p-6 sm:p-10
+          shadow-xl sm:shadow-2xl
+          overflow-hidden
+          bg-white/95 backdrop-blur-md
+        "
             >
-              {/* Background Gradient - Red to Blue blur effect */}
+              {/* Background blur */}
               <div className="absolute inset-0 z-0 overflow-hidden rounded-3xl">
                 <div
                   style={{
@@ -181,79 +192,50 @@ export default function ProgramKerjaPage() {
 
               {/* Content */}
               <div className="relative z-20">
-                  {/* Back Button */}
-                  <div className="mb-6">
-                    <button
-                      onClick={() => router.back()}
-                      className="
-                      flex items-center gap-2
-                      px-4 py-2
-                      bg-red-500 hover:bg-red-600
-                      text-white
-                      rounded-lg
-                      transition
-                      shadow-sm
-                    "
-                    >
-                      Kembali
-                    </button>
+                {loading ? (
+                  <div className="flex justify-center py-12">
+                    <div className="animate-pulse text-blue-800 font-semibold">
+                      Memuat data program...
+                    </div>
                   </div>
-                <div className="flex items-center justify-center">
-                  {/* Buttons Grid */}
-                  <div className="w-full">
-                    {loading ? (
-                      <div className="flex justify-center py-12">
-                        <div className="animate-pulse text-blue-800 font-semibold">
-                          Memuat data program...
-                        </div>
-                      </div>
-                    ) : !subPrograms || subPrograms.length === 0 ? (
-                      <div className="text-center py-8">
-                        <p className="text-gray-600 text-lg font-semibold">
-                          No sub-programs available
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {subPrograms.map((sub) => (
-                          <button
-                            key={sub.id}
-                            onClick={() =>
-                              router.push(
-                                `/monitoring-gubernur/${slug}/${sub.slug}`,
-                              )
-                            }
-                            className="
-                            group
-                            bg-white
-                            border border-gray-200
-                            hover:border-blue-300
-                            rounded-2xl
-                            p-5
-                            shadow-sm hover:shadow-xl
-                            transition-all duration-300 hover:-translate-y-1
-                            text-center
-                            "
-                          >
-                            <p className="font-semibold text-blue-900 group-hover:text-blue-700">
-                              {sub.namaSubProgram}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                ) : !subPrograms || subPrograms.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 text-lg font-semibold">
+                      No sub-programs available
+                    </p>
                   </div>
-                </div>
-
-                {/* Footer Text */}
-                <p
-                  className="text-center text-xs sm:text-sm 
-                  text-gray-700 mt-10 sm:mt-12 
-                  tracking-wide px-4"
-                >
-                  Find answer in our{" "}
-                  <span className="font-bold text-black">HELP CENTER</span>
-                </p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {subPrograms.map((sub) => (
+                      <button
+                        key={sub.id}
+                        onClick={() =>
+                          router.push(
+                            `/monitoring-gubernur/${slug}/${sub.slug}`,
+                          )
+                        }
+                        className="
+                          group
+                          w-full
+                          flex items-center gap-4
+                          bg-blue-800 hover:bg-blue-700
+                          text-white
+                          rounded-xl
+                          px-5 py-4
+                          shadow-sm hover:shadow-lg
+                          transition-all duration-200
+                          text-left
+                        "
+                      >
+                        {/* Accent bar - only visible on hover */}
+                        <span className="w-0 group-hover:w-1.5 h-6 rounded-full bg-yellow-400 shrink-0 transition-all duration-200 overflow-hidden" />
+                        <span className="text-sm sm:text-base font-medium leading-snug">
+                          {sub.namaSubProgram}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -432,29 +432,19 @@ export default function SubProgramPage() {
                 }}
               />
 
-              {/* Back Button */}
-              <div className="relative z-20 pb-4 ps-4">
-                <button
-                  onClick={() => router.back()}
-                  className="
-                      flex items-center gap-2
-                      px-4 py-2
-                      bg-red-500 hover:bg-red-600
-                      text-white
-                      rounded-lg
-                      transition
-                      shadow-sm
-                    "
-                >
-                  Kembali
-                </button>
-              </div>
-
               {/* ================= Filtering ================= */}
               <div className="relative z-20">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 px-4">
                   {/* LEFT - Page Size */}
                   <div className="flex items-center gap-3 flex-shrink-0">
+                    <button
+                      onClick={() => router.back()}
+                      className="
+                      border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-sm font-semibold text-blue-700 hover:bg-blue-600 hover:text-white shadow-md whitespace-nowrap
+                    "
+                    >
+                      Kembali
+                    </button>
                     <span className="border-2 border-blue-600 bg-white rounded-lg px-3 py-1 text-sm font-semibold text-blue-700 shadow-md whitespace-nowrap">
                       Tampilkan:
                     </span>
