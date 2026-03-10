@@ -173,18 +173,12 @@ export default function MonitoringGubernur() {
             height={75}
             className="object-contain hidden md:block"
           />
-          <div className="text-blue-900">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-center">
-              <span className="text-blue-900">SIMON</span>
-              <span className="text-green-600">EVA</span>{" "}
-              <span className="text-green-600">BER</span>
-              <span className="text-red-500">ANI</span>
-            </h1>
-            {/* Subjudul */}
-            <p className="text-center text-xs font-semibold md:text-sm tracking-widest uppercase pb-2">
-              Sistem Informasi Monitoring dan Evaluasi Program Kerja
-            </p>
-          </div>
+          <Image
+          src="/simoneva.png"
+          alt="logo"
+          width={400}
+          height={75}
+          className="object-contain"/>
           <Image
             src="/Motif_Sulteng_1.png"
             alt="Ornamen Sulteng 2"
